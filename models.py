@@ -83,7 +83,7 @@ class PotentialPredictor(nn.Module):
     results = x
     for conv in self.convs:
       results = conv(results, edge_index, x_pos)
-    results = torch.mean(results, dim = 0) # results.shape = (1, channels)
+    results = torch.mean(results, dim = 0, keepdim = True) # results.shape = (1, channels)
     results = self.head(results) # results.shape = (1, 1)
     return results
 
