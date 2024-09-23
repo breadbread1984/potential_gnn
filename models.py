@@ -20,7 +20,7 @@ class CustomAggregation(Aggregation):
     )
   def reset(self):
     pass
-  def forward(self, x, source_x, dest, x_pos = None, source_x_pos = None, dim_size = None):
+  def forward(self, x, source_x, dest, x_pos = None, source_x_pos = None):
     # x是已经按照from node id做了scatter
     # 这里需要做的是aggregate到to node id
     # x.shape = (node_num, channel)
@@ -34,7 +34,7 @@ class CustomAggregation(Aggregation):
     inputs = torch.cat([edge_x, edge_x_pos], dim = -1) # inputs.shape = (edge_num, channel * 2 + 3 * 2)
     weights = self.weight_model(inputs) # weights.shape = (edge_num, 1)
     weighted_source_x = source_x * weights
-    aggregated = torch.zeros((dim_size, x.size(1)), device = x.device)
+    aggregated = torch.zeros_like(x, device = x.device)
     unique_indices = index.unique()
     for idx in unique_indices:
       mask = (dest == idx)
@@ -54,7 +54,7 @@ class CustomConv(MessagePadding):
     return self.propagate(edge_index, x = x, x_pos = x_pos)
   def propagate(self, edge_index, x, x_pos):
     out = self.message(x) # out.shape = (node_num, channels)
-    out = self.aggregate(out, edge_index, x_pos, dim_size = out.shape[0]) # out.shape = (node_num, channels)
+    out = self.aggregate(out, edge_index, x_pos) # out.shape = (node_num, channels)
     return self.update(out) # shape = (node_num, channels)
   def message(self, x):
     results = self.dense1(x)
@@ -66,11 +66,24 @@ class CustomConv(MessagePadding):
     results = self.gelu(results)
     results = self.dropout2(results)
     return results
-  def aggregate(self, x, edge_index, x_pos, dim_size = None):
+  def aggregate(self, x, edge_index, x_pos):
     # inputs.shape = (node_num, channels)
     source, dest = edge_index
     source_x = torch.scatter_add(x, source, dim = 0) # source_x.shape = (edge_num, channels)
     source_x_pos = torch.scatter_add(x_pos, source, dim = 0) # source_x_pos.shape = (edge_num, 3)
-    return self.custom_aggr(x, source_x, dest, x_pos, source_x_pos, dim_size) # shape = (node_num, channels)
+    return self.custom_aggr(x, source_x, dest, x_pos, source_x_pos) # shape = (node_num, channels)
 
+class PotentialPredictor(nn.Module):
+  def __init__(self, channels = 256, layer_num = 4, drop_rate = 0.2):
+    super(PotentialPredictor, self).__init__()
+    self.convs = nn.ModuleList([CustomConv(channels, drop_rate) for _ in range(layer_num)])
+    self.head = nn.Linear(channels, 1)
+  def forward(self, data):
+    x, x_pos, edge_index = data.x, data.x_pos, data.edge_index
+    results = x
+    for conv in self.convs:
+      results = conv(results, edge_index, x_pos)
+    results = torch.mean(results, dim = 0) # results.shape = (1, channels)
+    results = self.head(results) # results.shape = (1, 1)
+    return results
 
