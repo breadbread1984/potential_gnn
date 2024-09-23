@@ -21,8 +21,6 @@ class CustomAggregation(Aggregation):
   def reset(self):
     pass
   def forward(self, x, source_x, dest, x_pos = None, source_x_pos = None):
-    # x是已经按照from node id做了scatter
-    # 这里需要做的是aggregate到to node id
     # x.shape = (node_num, channel)
     # source_x.shape = (edge_num, channel)
     # x_pos.shape = (node_num, 3)
