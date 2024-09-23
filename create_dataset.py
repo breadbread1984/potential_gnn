@@ -27,15 +27,18 @@ class RhoDataset(Dataset):
     pos = self.pos[index:index+1] # pos.shape = (1,3)
     D, I = self.index.search(pos, self.k) # D.shape = (1, k) I.shape = (1, K)
     neighbor_rho = np.squeeze(self.rho[I,:], axis = 0) # neighbor_rho.shape = (K, 739)
+    neighbor_pos = np.squeeze(self.pos[I,:], axis = 0) # neighbor_pos.shape = (K, 3)
     rho = np.expand_dims(self.rho[index,:], axis = 0) # rho.shape = (1, 739)
+    pos = np.expand_dims(self.pos[index,:], axis = 0) # pos.shape = (1, 3)
     x = np.concatenate([rho, neighbor_rho], axis = 0) # rhos.shape = (K+1, 739)
+    x_pos = np.concatenate([pos, neighbor_pos], axis = 0) # pos.shape = (K+1, 3)
     edge_index = list()
     for i in range(1, self.k + 1):
       edge_index.append([0,i])
       edge_index.append([i,0])
-    edge_index = torch.tensor(edge_index, dtype = torch.long).t().contiguous()
+    edge_index = torch.tensor(edge_index, dtype = torch.long).t().contiguous() # edge_index.shape = (2, edge_num)
     exc = self.exc[index] # exc.shape = ()
     vxc = self.vxc[index] # vxc.shape = ()
-    data = Data(x = x, edge_index = edge_index, exc = exc, vxc = vxc)
+    data = Data(x = x, x_pos = x_pos, edge_index = edge_index, exc = exc, vxc = vxc)
     return data
 
