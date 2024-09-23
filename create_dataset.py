@@ -34,7 +34,6 @@ class RhoDataset(Dataset):
     x_pos = np.concatenate([pos, neighbor_pos], axis = 0) # pos.shape = (K+1, 3)
     edge_index = list()
     for i in range(1, self.k + 1):
-      edge_index.append([0,i])
       edge_index.append([i,0])
     edge_index = torch.tensor(edge_index, dtype = torch.long).t().contiguous() # edge_index.shape = (2, edge_num)
     exc = self.exc[index] # exc.shape = ()
