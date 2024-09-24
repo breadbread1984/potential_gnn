@@ -3,7 +3,7 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-from torch_geometric.nn import MessagePassing
+from torch_geometric.nn import MessagePassing, global_mean_pool
 from torch_geometric.nn.aggr import Aggregation
 
 class CustomAggregation(Aggregation):
@@ -81,7 +81,8 @@ class PotentialPredictor(nn.Module):
     results = x
     for conv in self.convs:
       results = conv(results, edge_index, x_pos)
-    results = torch.mean(results, dim = 0, keepdim = True) # results.shape = (1, channels)
+    # FIXME:
+    results = global_mean_pool(x, )
     results = self.head(results) # results.shape = (1, 1)
     return results
 
