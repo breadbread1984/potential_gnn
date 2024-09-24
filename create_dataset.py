@@ -2,6 +2,7 @@
 
 from os import listdir
 import numpy as np
+from torch.utils.data import Dataset
 from torch_geometric.data import Data
 import faiss
 
@@ -41,3 +42,10 @@ class RhoDataset(Dataset):
     data = Data(x = x, x_pos = x_pos, edge_index = edge_index, exc = exc, vxc = vxc)
     return data
 
+if __name__ == "__main__":
+  dataset = RhoDataset('dataset')
+  from torch_geometric.loader import DataLoader
+  loader = DataLoader(dataset, batchsize = 4, shuffle = True)
+  for batch in loader:
+    print(batch.batch)
+    break
