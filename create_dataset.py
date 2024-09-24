@@ -1,7 +1,9 @@
 #!/usr/bin/python3
 
 from os import listdir
+from os.path import join, exists, splitext
 import numpy as np
+import torch
 from torch.utils.data import Dataset
 from torch_geometric.data import Data
 import faiss
@@ -43,9 +45,9 @@ class RhoDataset(Dataset):
     return data
 
 if __name__ == "__main__":
-  dataset = RhoDataset('dataset')
+  dataset = RhoDataset('trainset')
   from torch_geometric.loader import DataLoader
-  loader = DataLoader(dataset, batchsize = 4, shuffle = True)
+  loader = DataLoader(dataset, batch_size = 4, shuffle = True)
   for batch in loader:
     print(batch.batch)
     break
