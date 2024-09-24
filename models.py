@@ -77,12 +77,11 @@ class PotentialPredictor(nn.Module):
     self.convs = nn.ModuleList([CustomConv(channels, drop_rate) for _ in range(layer_num)])
     self.head = nn.Linear(channels, 1)
   def forward(self, data):
-    x, x_pos, edge_index = data.x, data.x_pos, data.edge_index
+    x, x_pos, edge_index, batch = data.x, data.x_pos, data.edge_index, data.batch
     results = x
     for conv in self.convs:
       results = conv(results, edge_index, x_pos)
-    # FIXME:
-    results = global_mean_pool(x, )
-    results = self.head(results) # results.shape = (1, 1)
+    results = global_mean_pool(x, batch) # results.shape = (graph_num, channels)
+    results = self.head(results) # results.shape = (graph_num, 1)
     return results
 
