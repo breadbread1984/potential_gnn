@@ -9,7 +9,7 @@ from torch_geometric.nn.aggr import Aggregation
 class CustomAggregation(Aggregation):
   def __init__(self, channel, drop_rate = 0.2):
     super(CustomAggregation, self).__init__()
-    self.weight_model = nn.Sequantial(
+    self.weight_model = nn.Sequential(
       nn.LayerNorm([channel * 2 + 3 * 2]),
       nn.Linear(channel * 2 + 3 * 2, 4),
       nn.Dropout(drop_rate),
