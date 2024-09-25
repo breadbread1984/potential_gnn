@@ -36,14 +36,14 @@ def main(unused_argv):
   model = PotentialPredictor()
   model.to(device(FLAGS.device))
   mae = L1Loss()
-  optimizer = Adam(model.module.parameters(), lr = FLAGS.lr)
+  optimizer = Adam(model.parameters(), lr = FLAGS.lr)
   scheduler = CosineAnnealingWarmRestarts(optimizer, T_0 = 5, T_mult = 2)
   if not exists(FLAGS.ckpt): mkdir(FLAGS.ckpt)
   tb_writer = SummaryWriter(log_dir = join(FLAGS.ckpt, 'summaries'))
   start_epoch = 0
   if exists(join(FLAGS.ckpt, 'model.pth')):
     ckpt = load(join(FLAGS.ckpt, 'model.pth'))
-    model.module.load_state_dict(ckpt['state_dict'])
+    model.load_state_dict(ckpt['state_dict'])
     optimizer.load_state_dict(ckpt['optimizer'])
     scheduler = ckpt['scheduler']
     start_epoch = ckpt['epoch']
@@ -68,7 +68,7 @@ def main(unused_argv):
         tb_writer.add_scalar('vxc loss', loss2, global_steps)
     ckpt = {
       'epoch': epoch,
-      'state_dict': model.module.state_dict(),
+      'state_dict': model.state_dict(),
       'optimizer': optimizer.state_dict(),
       'scheduler': scheduler
     }
