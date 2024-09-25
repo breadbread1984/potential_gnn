@@ -26,6 +26,7 @@ def add_options():
   flags.DEFINE_string('ckpt', default = 'ckpt', help = 'path to directory for checkpoint')
   flags.DEFINE_integer('batch_size', default = 32, help = 'batch size')
   flags.DEFINE_integer('workers', default = 32, help = 'number of workers')
+  flags.DEFINE_integer('epochs', default = 100, help = 'number of epochs')
   flags.DEFINE_enum('device', default = 'cuda', enum_values = {'cuda', 'cpu'}, help = 'device to use')
 
 def main(unused_argv):
