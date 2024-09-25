@@ -6,11 +6,8 @@ from os.path import exists, join, splitext
 import torch
 from torch import device, save, load, autograd
 from torch.nn import L1Loss
-import torch.distributed as dist
-from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.optim import Adam
 from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
-from torch.utils.data import distributed
 from torch_geometric.loader import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 import torchmetrics
@@ -31,25 +28,18 @@ def add_options():
 
 def main(unused_argv):
   autograd.set_detect_anomaly(True)
-  dist.init_process_group(backend = 'nccl')
-  torch.cuda.set_device(dist.get_rank())
   trainset = RhoDataset(FLAGS.trainset)
   evalset = RhoDataset(FLAGS.evalset)
-  trainset_sampler = distributed.DistributedSampler(trainset)
-  evalset_sampler = distributed.DistributedSampler(evalset)
-  if dist.get_rank() == 0:
-    print(f'trainset size {len(trainset)}, evalset size {len(evalset)}')
-  trainset_dataloader = DataLoader(trainset, batch_size = FLAGS.batch_size, shuffle = False, num_workers = FLAGS.workers, sampler = trainset_sampler, pin_memory = False)
-  evalset_dataloader = DataLoader(evalset, batch_size = FLAGS.batch_size, shuffle = False, num_workers = FLAGS.workers, sampler = evalset_sampler, pin_memory = False)
+  print(f'trainset size {len(trainset)}, evalset size {len(evalset)}')
+  trainset_dataloader = DataLoader(trainset, batch_size = FLAGS.batch_size, shuffle = True, num_workers = FLAGS.workers)
+  evalset_dataloader = DataLoader(evalset, batch_size = FLAGS.batch_size, shuffle = True, num_workers = FLAGS.workers)
   model = PotentialPredictor()
   model.to(device(FLAGS.device))
-  model = DDP(model, device_ids = [dist.get_rank()], output_device = dist.get_rank(), find_unused_parameters = True)
   mae = L1Loss()
   optimizer = Adam(model.module.parameters(), lr = FLAGS.lr)
   scheduler = CosineAnnealingWarmRestarts(optimizer, T_0 = 5, T_mult = 2)
-  if dist.get_rank() == 0:
-    if not exists(FLAGS.ckpt): mkdir(FLAGS.ckpt)
-    tb_writer = SummaryWriter(log_dir = join(FLAGS.ckpt, 'summaries'))
+  if not exists(FLAGS.ckpt): mkdir(FLAGS.ckpt)
+  tb_writer = SummaryWriter(log_dir = join(FLAGS.ckpt, 'summaries'))
   start_epoch = 0
   if exists(join(FLAGS.ckpt, 'model.pth')):
     ckpt = load(join(FLAGS.ckpt, 'model.pth'))
@@ -58,7 +48,6 @@ def main(unused_argv):
     scheduler = ckpt['scheduler']
     start_epoch = ckpt['epoch']
   for epoch in range(start_epoch, FLAGS.epochs):
-    trainset_dataloader.sampler.set_epoch(epoch)
     model.train()
     for step, data in enumerate(trainset_dataloader):
       optimizer.zero_grad()
@@ -73,18 +62,17 @@ def main(unused_argv):
       loss.backward()
       optimizer.step()
       global_step = epoch * len(trainset_dataloader) + step
-      if global_steps % 100 == 0 and dist.get_rank() == 0:
+      if global_steps % 100 == 0:
         print(f'global step #{global_steps}: exc MAE = {loss1} vxc MAE = {loss3} lr = {scheduler.get_last_lr()[0]}')
         tb_writer.add_scalar('exc loss', loss1, global_steps)
         tb_writer.add_scalar('vxc loss', loss2, global_steps)
-    if dist.get_rank() == 0:
-      ckpt = {
-        'epoch': epoch,
-        'state_dict': model.module.state_dict(),
-        'optimizer': optimizer.state_dict(),
-        'scheduler': scheduler
-      }
-      save(ckpt, join(FLAGS.ckpt, 'model.pth'))
+    ckpt = {
+      'epoch': epoch,
+      'state_dict': model.module.state_dict(),
+      'optimizer': optimizer.state_dict(),
+      'scheduler': scheduler
+    }
+    save(ckpt, join(FLAGS.ckpt, 'model.pth'))
     scheduler.step()
     evalset_dataloader.sampler.set_epoch(epoch)
     model.eval()
