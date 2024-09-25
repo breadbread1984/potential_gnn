@@ -22,7 +22,6 @@ def add_options():
   flags.DEFINE_float('lr', default = 1e-3, help = 'learning rate')
   flags.DEFINE_string('ckpt', default = 'ckpt', help = 'path to directory for checkpoint')
   flags.DEFINE_integer('batch_size', default = 32, help = 'batch size')
-  flags.DEFINE_integer('workers', default = 32, help = 'number of workers')
   flags.DEFINE_integer('epochs', default = 100, help = 'number of epochs')
   flags.DEFINE_enum('device', default = 'cuda', enum_values = {'cuda', 'cpu'}, help = 'device to use')
 
@@ -31,8 +30,8 @@ def main(unused_argv):
   trainset = RhoDataset(FLAGS.trainset)
   evalset = RhoDataset(FLAGS.evalset)
   print(f'trainset size {len(trainset)}, evalset size {len(evalset)}')
-  trainset_dataloader = DataLoader(trainset, batch_size = FLAGS.batch_size, shuffle = True, num_workers = FLAGS.workers)
-  evalset_dataloader = DataLoader(evalset, batch_size = FLAGS.batch_size, shuffle = True, num_workers = FLAGS.workers)
+  trainset_dataloader = DataLoader(trainset, batch_size = FLAGS.batch_size, shuffle = True)
+  evalset_dataloader = DataLoader(evalset, batch_size = FLAGS.batch_size, shuffle = True)
   model = PotentialPredictor()
   model.to(device(FLAGS.device))
   mae = L1Loss()
