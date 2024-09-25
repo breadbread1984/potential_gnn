@@ -41,7 +41,7 @@ class CustomAggregation(Aggregation):
       aggregated[idx] = torch.sum(weighted_source_x[mask], dim = 0)
     return aggregated
 
-class CustomConv(MessagePadding):
+class CustomConv(MessagePassing):
   def __init__(self, channels = 256, drop_rate = 0.2):
     super(CustomConv, self).__init__(aggr = None) # no default aggregate
     self.custom_aggr = CustomAggregation(channels, drop_rate)
