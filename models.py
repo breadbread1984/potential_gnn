@@ -78,13 +78,14 @@ class CustomConv(MessagePassing):
 class PotentialPredictor(nn.Module):
   def __init__(self, channels = 256, layer_num = 4, drop_rate = 0.2):
     super(PotentialPredictor, self).__init__()
+    self.dense = nn.Linear(739, channels)
     self.convs = nn.ModuleList([CustomConv(channels, drop_rate) for _ in range(layer_num)])
     self.head = nn.Linear(channels, 1)
   def forward(self, data):
     x, x_pos, edge_index, batch = data.x, data.x_pos, data.edge_index, data.batch
-    results = x
+    results = self.dense(x) # results.shape = (node_num, channels)
     for conv in self.convs:
-      results = conv(results, edge_index, x_pos)
+      results = conv(results, edge_index, x_pos) # results.shape = (node_num, channels)
     results = global_mean_pool(x, batch) # results.shape = (graph_num, channels)
     results = self.head(results) # results.shape = (graph_num, 1)
     return results
