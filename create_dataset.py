@@ -42,7 +42,7 @@ class RhoDataset(Dataset):
     edge_index = torch.tensor(edge_index, dtype = torch.long).t().contiguous() # edge_index.shape = (2, edge_num)
     exc = self.exc[index] # exc.shape = ()
     vxc = self.vxc[index] # vxc.shape = ()
-    data = Data(x = x, x_pos = x_pos, edge_index = edge_index, exc = exc, vxc = vxc)
+    data = Data(x = torch.from_numpy(x), x_pos = torch.from_numpy(x_pos), edge_index = edge_index, exc = torch.from_numpy(exc), vxc = torch.from_numpy(vxc))
     return data
 
 if __name__ == "__main__":
