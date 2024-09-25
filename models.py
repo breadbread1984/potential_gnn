@@ -41,7 +41,7 @@ class CustomAggregation(Aggregation):
 
 class CustomConv(MessagePadding):
   def __init__(self, channels = 256, drop_rate = 0.2):
-    super(CustomConv, self).__init__(aggr = 'add') # placeholder
+    super(CustomConv, self).__init__(aggr = None) # no default aggregate
     self.custom_aggr = CustomAggregation(channels, drop_rate)
     self.dense1 = nn.Linear(channels, channels)
     self.gelu = nn.GELU()
