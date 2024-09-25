@@ -25,8 +25,9 @@ class CustomAggregation(Aggregation):
     # source_x.shape = (edge_num, channel)
     # x_pos.shape = (node_num, 3)
     # source_x_pos.shape = (edge_num, 3)
-    dest_x = torch.scatter_add(x, dest, dim = 0) # dest_x.shape = (edge_num, channel)
-    dest_x_pos = torch.scatter_add(x_pos, dest, dim = 0) # dest_x_pos.shape = (edge_num, 3)
+    dest = torch.tile(torch.unsqueeze(dest, dim = -1), (1, x.shape[1])) # dest.shape = (edge_num, channel)
+    dest_x = torch.scatter_add(x, dest, dim = 0, input = torch.zeros_like(dest, dtype = x.dtype, device = x.device)) # dest_x.shape = (edge_num, channel)
+    dest_x_pos = torch.scatter_add(x_pos, dest, dim = 0, input = torch.zeros((dest.shape[0], 3), dtype = x_pos.dtype, device = x_pos.device)) # dest_x_pos.shape = (edge_num, 3)
     edge_x = torch.cat([source_x, dest_x], dim = -1) # edge_x.shape = (edge_num, channel * 2)
     edge_x_pos = torch.cat([source_x_pos, dest_x_pos], dim = -1) # edge_x_pos.shape = (edge_num, 3 * 2)
     inputs = torch.cat([edge_x, edge_x_pos], dim = -1) # inputs.shape = (edge_num, channel * 2 + 3 * 2)
@@ -67,8 +68,9 @@ class CustomConv(MessagePadding):
   def aggregate(self, x, edge_index, x_pos):
     # inputs.shape = (node_num, channels)
     source, dest = edge_index
-    source_x = torch.scatter_add(x, source, dim = 0) # source_x.shape = (edge_num, channels)
-    source_x_pos = torch.scatter_add(x_pos, source, dim = 0) # source_x_pos.shape = (edge_num, 3)
+    source = torch.tile(torch.unsqueeze(source, dim = -1), (1, x.shape[1])) # source.shape = (edge_num, channels)
+    source_x = torch.scatter_add(x, source, dim = 0, input = torch.zeros_like(source, dtype = x.dtype, device = x.device)) # source_x.shape = (edge_num, channels)
+    source_x_pos = torch.scatter_add(x_pos, source, dim = 0, input = torch.zeros((source.shape[0], 3), dtype = x_pos.dtype, device = x_pos.device)) # source_x_pos.shape = (edge_num, 3)
     return self.custom_aggr(x, source_x, dest, x_pos, source_x_pos) # shape = (node_num, channels)
 
 class PotentialPredictor(nn.Module):
