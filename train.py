@@ -21,7 +21,7 @@ def add_options():
   flags.DEFINE_string('evalset', default = None, help = 'path to evalset')
   flags.DEFINE_float('lr', default = 1e-4, help = 'learning rate')
   flags.DEFINE_string('ckpt', default = 'ckpt', help = 'path to directory for checkpoint')
-  flags.DEFINE_integer('batch_size', default = 256, help = 'batch size')
+  flags.DEFINE_integer('batch_size', default = 1024, help = 'batch size')
   flags.DEFINE_integer('epochs', default = 100, help = 'number of epochs')
   flags.DEFINE_enum('device', default = 'cuda', enum_values = {'cuda', 'cpu'}, help = 'device to use')
 
@@ -54,9 +54,10 @@ def main(unused_argv):
       data.x.requires_grad = True # data.x.shape = (node_num1 + node_num2 + ... + node_numbatch, 739)
       pred_exc = model(data.x, data.x_pos, data.batch) # pred_exc.shape = (graph_num, 1)
       loss1 = mae(torch.squeeze(pred_exc), data.exc)
-      rho = torch.stack([data.x[data.batch == i][0] for i in range(FLAGS.batch_size)], dim = 0) # rho.shape = (graph_num, 739)
+      batch_size = torch.max(data.batch.unique()) + 1
+      rho = torch.stack([data.x[data.batch == i][0] for i in range(batch_size)], dim = 0) # rho.shape = (graph_num, 739)
       g = autograd.grad(torch.sum(rho[:,739//2] * pred_exc), data.x, create_graph = True)[0]
-      pred_vxc = torch.stack([g[data.batch == i][0] for i in range(FLAGS.batch_size)], dim = 0)[:,739//2] # pred_vxc.shape = (graph_num,)
+      pred_vxc = torch.stack([g[data.batch == i][0] for i in range(batch_size)], dim = 0)[:,739//2] # pred_vxc.shape = (graph_num,)
       loss2 = mae(pred_vxc, data.vxc)
       loss = loss1 + loss2
       loss.backward()
@@ -82,9 +83,10 @@ def main(unused_argv):
       data = data.to(device(FLAGS.device))
       data.x.requires_grad = True
       pred_exc = model(data.x, data.x_pos, data.batch)
-      rho = torch.stack([data.x[data.batch == i][0] for i in range(FLAGS.batch_size)], dim = 0) # rho.shape = (graph_num, 739)
+      batch_size = torch.max(data.batch.unique()) + 1
+      rho = torch.stack([data.x[data.batch == i][0] for i in range(batch_size)], dim = 0) # rho.shape = (graph_num, 739)
       g = autograd.grad(torch.sum(rho[:,739//2] * pred_exc), data.x, create_graph = True)[0]
-      pred_vxc = torch.stack([g[data.batch == i][0] for i in range(FLAGS.batch_size)], dim = 0)[:,739//2] # pred_vxc.shape = (graph_num,)
+      pred_vxc = torch.stack([g[data.batch == i][0] for i in range(batch_size)], dim = 0)[:,739//2] # pred_vxc.shape = (graph_num,)
       pred_excs.append(pred_exc)
       pred_vxcs.append(pred_vxc)
       true_excs.append(data.exc)
