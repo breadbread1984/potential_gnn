@@ -7,8 +7,11 @@ from torch_geometric.nn.models import SchNet
 class PotentialPredictor(SchNet):
   def __init__(self,):
     super(PotentialPredictor, self).__init__()
+    self.tail = nn.Linear(739, self.hidden_channels)
     self.head = nn.Linear(self.hidden_channels, 1)
   def forward(self, h, pos, batch):
+    h = self.tail(h)
+
     edge_index, edge_weight = self.interaction_graph(pos, batch)
     edge_attr = self.distance_expansion(edge_weight)
 
