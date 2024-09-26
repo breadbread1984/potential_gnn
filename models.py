@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 
 from torch import nn
-from torch_geometrics.nn import global_mean_pool
-from torch_geometrics.nn.models import SchNet
+from torch_geometric.nn import global_mean_pool
+from torch_geometric.nn.models import SchNet
 
 class PotentialPredictor(SchNet):
   def __init__(self,):
