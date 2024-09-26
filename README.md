@@ -10,6 +10,12 @@ this project predict potential with GNN
 python3 -m pip install -r requirements.txt
 ```
 
+## Download dataset
+
+```shell
+bash download_datasets.sh
+```
+
 ## Train Model
 
 ```shell
