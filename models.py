@@ -69,7 +69,7 @@ class CustomConv(MessagePassing):
     source, dest = edge_index
     source_x = x[source,:] # source_x.sahpe = (edge_num, channels)
     source_x_pos = x_pos[source,:] # source_x_pos.shape = (edge_num, 3)
-    return self.custom_aggr(x, dest, x_pos = x_pos, source_x = source_x, source_x_pos = source_x_pos) # shape = (node_num, channels)
+    return self.custom_aggr(x, index = dest, x_pos = x_pos, source_x = source_x, source_x_pos = source_x_pos) # shape = (node_num, channels)
 
 class PotentialPredictor(nn.Module):
   def __init__(self, channels = 256, layer_num = 4, drop_rate = 0.2):
