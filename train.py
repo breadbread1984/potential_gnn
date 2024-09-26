@@ -51,10 +51,10 @@ def main(unused_argv):
     for step, data in enumerate(trainset_dataloader):
       optimizer.zero_grad()
       data = data.to(device(FLAGS.device))
-      rho = torch.stack([data.x[data.batch == i][0] for i in range(FLAGS.batch_size)], dim = 0) # rho.shape = (graph_num, 739)
-      rho.requires_grad = True
+      [data.x[data.batch == i].requires_grad = True for i in range(FLAGS.batch_size)]
       pred_exc = model(data) # pred_exc.shape = (graph_num, 1)
       loss1 = mae(pred_exc, data.exc)
+      rho = torch.stack([data.x[data.batch == i][0] for i in range(FLAGS.batch_size)], dim = 0) # rho.shape = (graph_num, 739)
       pred_vxc = autograd.grad(torch.sum(rho[:,739//2] * pred_exc), rho, create_graph = True)[0][:,739//2]
       loss2 = mae(pred_vxc, data.vxc)
       loss = loss1 + loss2
@@ -62,7 +62,7 @@ def main(unused_argv):
       optimizer.step()
       global_step = epoch * len(trainset_dataloader) + step
       if global_step % 100 == 0:
-        print(f'global step #{global_steps}: exc MAE = {loss1} vxc MAE = {loss3} lr = {scheduler.get_last_lr()[0]}')
+        print(f'global step #{global_step}: exc MAE = {loss1} vxc MAE = {loss3} lr = {scheduler.get_last_lr()[0]}')
         tb_writer.add_scalar('exc loss', loss1, global_steps)
         tb_writer.add_scalar('vxc loss', loss2, global_steps)
     ckpt = {
@@ -79,9 +79,9 @@ def main(unused_argv):
     true_excs, true_vxcs = list(), list()
     for data in evalset_dataloader:
       data = data.to(device(FLAGS.device))
-      rho = torch.stack([data.x[data.batch == i][0] for i in range(FLAGS.batch_size)], dim = 0) # rho.shape = (graph_num, 739)
-      rho.requires_grad = True
+      [data.x[data.batch == i].requires_grad = True for i in range(FLAGS.batch_size)]
       pred_exc = model(data)
+      rho = torch.stack([data.x[data.batch == i][0] for i in range(FLAGS.batch_size)], dim = 0) # rho.shape = (graph_num, 739)
       pred_vxc = autograd.grad(torch.sum(rho[:,739//2] * pred_exc), rho, create_graph = True)[0][:,739//2]
       pred_excs.append(pred_exc)
       pred_vxcs.append(pred_vxc)
