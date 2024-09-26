@@ -62,7 +62,7 @@ def main(unused_argv):
       optimizer.step()
       global_step = epoch * len(trainset_dataloader) + step
       if global_step % 100 == 0:
-        print(f'global step #{global_step}: exc MAE = {loss1} vxc MAE = {loss3} lr = {scheduler.get_last_lr()[0]}')
+        print(f'global step #{global_step}: exc MAE = {loss1} vxc MAE = {loss2} lr = {scheduler.get_last_lr()[0]}')
         tb_writer.add_scalar('exc loss', loss1, global_steps)
         tb_writer.add_scalar('vxc loss', loss2, global_steps)
     ckpt = {
