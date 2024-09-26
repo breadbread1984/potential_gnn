@@ -20,7 +20,7 @@ class CustomAggregation(Aggregation):
     )
   def reset(self):
     pass
-  def forward(self, x, index, ptr = None, dim_size = None, x_pos = None, source_x = None, source_x_pos = None):
+  def forward(self, x, index, ptr = None, dim_size = None, x_pos = None, source_x = None, source_x_pos = None, **kwargs):
     # x.shape = (node_num, channel)
     # source_x.shape = (edge_num, channel)
     # x_pos.shape = (node_num, 3)
