@@ -35,7 +35,7 @@ class CustomAggregation(Aggregation):
     aggregated = torch.zeros_like(x, device = x.device)
     unique_indices = index.unique()
     for idx in unique_indices:
-      mask = (dest == idx)
+      mask = (index == idx)
       aggregated[idx] = torch.sum(weighted_source_x[mask], dim = 0)
     return aggregated
 
