@@ -76,7 +76,6 @@ def main(unused_argv):
     }
     save(ckpt, join(FLAGS.ckpt, 'model.pth'))
     scheduler.step()
-    evalset_dataloader.sampler.set_epoch(epoch)
     model.eval()
     pred_excs, pred_vxcs = list(), list()
     true_excs, true_vxcs = list(), list()
