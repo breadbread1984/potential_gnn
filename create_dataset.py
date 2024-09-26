@@ -10,7 +10,7 @@ import numpy as np
 from bisect import bisect
 import torch
 from torch.utils.data import Dataset
-from torch_geometric.data impmort Data
+from torch_geometric.data import Data
 import faiss
 
 FLAGS = flags.FLAGS
