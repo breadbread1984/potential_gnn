@@ -1,5 +1,6 @@
 numpy
 torch
+torch-cluster
 torch-geometric
 absl-py
 faiss-gpu
