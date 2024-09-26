@@ -82,7 +82,7 @@ class PotentialPredictor(nn.Module):
     results = self.dense(x) # results.shape = (node_num, channels)
     for conv in self.convs:
       results = conv(results, edge_index, x_pos) # results.shape = (node_num, channels)
-    results = global_mean_pool(x, batch) # results.shape = (graph_num, channels)
+    results = global_mean_pool(results, batch) # results.shape = (graph_num, channels)
     results = self.head(results) # results.shape = (graph_num, 1)
     return results
 
