@@ -8,7 +8,6 @@ class PotentialPredictor(SchNet):
   def __init__(self,):
     super(PotentialPredictor, self).__init__()
     self.tail = nn.Linear(739, self.hidden_channels)
-    self.head = nn.Linear(self.hidden_channels, 1)
   def forward(self, h, pos, batch):
     h = self.tail(h)
 
@@ -42,8 +41,5 @@ class PotentialPredictor(SchNet):
 
     if self.scale is not None:
       out = self.scale * out
-
-    out = global_mean_pool(out, batch)
-    out = self.head(out)
 
     return out
