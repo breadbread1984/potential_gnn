@@ -2,3 +2,4 @@ numpy
 torch
 torch-geometric
 absl-py
+faiss-gpu
