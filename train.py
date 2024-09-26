@@ -70,7 +70,7 @@ def main(unused_argv):
         tb_writer.add_scalar('exc loss', loss1, global_step)
         tb_writer.add_scalar('vxc loss', loss2, global_step)
     ckpt = {
-      'epoch': epoch,
+      'epoch': epoch + 1,
       'state_dict': model.state_dict(),
       'optimizer': optimizer.state_dict(),
       'scheduler': scheduler
