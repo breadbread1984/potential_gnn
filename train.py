@@ -19,9 +19,9 @@ FLAGS = flags.FLAGS
 def add_options():
   flags.DEFINE_string('trainset', default = None, help = 'path to trainset')
   flags.DEFINE_string('evalset', default = None, help = 'path to evalset')
-  flags.DEFINE_float('lr', default = 1e-3, help = 'learning rate')
+  flags.DEFINE_float('lr', default = 1e-4, help = 'learning rate')
   flags.DEFINE_string('ckpt', default = 'ckpt', help = 'path to directory for checkpoint')
-  flags.DEFINE_integer('batch_size', default = 32, help = 'batch size')
+  flags.DEFINE_integer('batch_size', default = 256, help = 'batch size')
   flags.DEFINE_integer('epochs', default = 100, help = 'number of epochs')
   flags.DEFINE_enum('device', default = 'cuda', enum_values = {'cuda', 'cpu'}, help = 'device to use')
 
