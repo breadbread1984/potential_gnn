@@ -20,13 +20,13 @@ class CustomAggregation(Aggregation):
     )
   def reset(self):
     pass
-  def forward(self, x, source_x, dest, x_pos = None, source_x_pos = None):
+  def forward(self, x, index, ptr = None, dim_size = None, source_x, x_pos = None, source_x_pos = None):
     # x.shape = (node_num, channel)
     # source_x.shape = (edge_num, channel)
     # x_pos.shape = (node_num, 3)
     # source_x_pos.shape = (edge_num, 3)
-    dest_x = x[dest,:] # dest_x.shape = (edge_num, channel)
-    dest_x_pos = x_pos[dest,:] # dest_x_pos.shape = (edge_num, 3)
+    dest_x = x[index,:] # dest_x.shape = (edge_num, channel)
+    dest_x_pos = x_pos[index,:] # dest_x_pos.shape = (edge_num, 3)
     edge_x = torch.cat([source_x, dest_x], dim = -1) # edge_x.shape = (edge_num, channel * 2)
     edge_x_pos = torch.cat([source_x_pos, dest_x_pos], dim = -1) # edge_x_pos.shape = (edge_num, 3 * 2)
     inputs = torch.cat([edge_x, edge_x_pos], dim = -1) # inputs.shape = (edge_num, channel * 2 + 3 * 2)
@@ -69,7 +69,7 @@ class CustomConv(MessagePassing):
     source, dest = edge_index
     source_x = x[source,:] # source_x.sahpe = (edge_num, channels)
     source_x_pos = x_pos[source,:] # source_x_pos.shape = (edge_num, 3)
-    return self.custom_aggr(x, source_x, dest, x_pos, source_x_pos) # shape = (node_num, channels)
+    return self.custom_aggr(x, dest, x_pos = x_pos, source_x = source_x, source_x_pos = source_x_pos) # shape = (node_num, channels)
 
 class PotentialPredictor(nn.Module):
   def __init__(self, channels = 256, layer_num = 4, drop_rate = 0.2):
