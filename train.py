@@ -51,7 +51,8 @@ def main(unused_argv):
     for step, data in enumerate(trainset_dataloader):
       optimizer.zero_grad()
       data = data.to(device(FLAGS.device))
-      [data.x[data.batch == i].requires_grad = True for i in range(FLAGS.batch_size)]
+      for i in range(FLAGS.batch_size):
+        data.x[data.batch == i].requires_grad = True
       pred_exc = model(data) # pred_exc.shape = (graph_num, 1)
       loss1 = mae(pred_exc, data.exc)
       rho = torch.stack([data.x[data.batch == i][0] for i in range(FLAGS.batch_size)], dim = 0) # rho.shape = (graph_num, 739)
@@ -79,7 +80,8 @@ def main(unused_argv):
     true_excs, true_vxcs = list(), list()
     for data in evalset_dataloader:
       data = data.to(device(FLAGS.device))
-      [data.x[data.batch == i].requires_grad = True for i in range(FLAGS.batch_size)]
+      for i in range(FLAGS.batch_size):
+        data.x[data.batch == i].requires_grad = True
       pred_exc = model(data)
       rho = torch.stack([data.x[data.batch == i][0] for i in range(FLAGS.batch_size)], dim = 0) # rho.shape = (graph_num, 739)
       pred_vxc = autograd.grad(torch.sum(rho[:,739//2] * pred_exc), rho, create_graph = True)[0][:,739//2]
