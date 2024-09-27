@@ -7,10 +7,30 @@ import torch.nn.functional as F
 from torch_geometric.nn import MessagePassing, global_mean_pool, aggr
 
 class AeroConv(MessagPassing):
-  def __init__(self, channels = 256, drop_rate = 0.2):
+  def __init__(self, k, channels = 64, head = 1, lambd = 1):
     super(AeroConv, self).__init__(aggr = None)
-    pass
-  def forward(self, x, edge_index):
+    self.aggr = aggr.SumAggregation()
+    self.att = nn.Parameter(torch.empty(1, head, channels // head), requires_grad = True)
+    self.k = k
+    self.lambd = lambd
+  def forward(self, x, edge_index, z):
+    return self.propagate(edget_index, x = x, z = z)
+  def propagate(self, edge_index, x, z):
+    source, dest = edge_index
+    x, z_scale = self.message(x, z) # x.shape = (node_num, channels) z_scale.shape = (node_num, head, channels // head)
+    x = x[source, ...] # x.shape = (edge_num, channels)
+    z_scale_i = z_scale[source, ...] # z_scale_i.shape = (edge_num, head, channels // head)
+    z_scale_j = z_scale[dest, ...] # z_scale_j.shape = (edge_num, head, channels // head)
+    a_ij = F.elu(z_scale_i + z_scale_j)
+    a_ij = F.softplus(torch.sum(self.att * a_ij, dim = -1)) + 1e-6 # a_ij.shape = (edge_num, head)
+    
+    # TODO
+  def message(self, x, z):
+    z_scale = z * torch.log((self.lamb / self.k) + (1 + 1e-6)) # z_scale.shape = (node_num, head, channels // head)
+    return x, z_scale
+  def aggregate(self, inputs, index, z_scale):
+    
+  def update(self, aggr_out):
     pass
 
 class InitFeat(nn.Module):
