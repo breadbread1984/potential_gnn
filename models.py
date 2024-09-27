@@ -50,12 +50,16 @@ class UpdateZ(nn.Module):
     return z
 
 class PotentialPredictor(nn.Module):
-  def __init__(self, in_channels = 739, hid_channels = 64, dense_layer_num = 2, drop_rate = 0.5):
+  def __init__(self, in_channels = 739, hid_channels = 64, dense_layer_num = 2, head = 1, lambd = 1, layer_num = 10, drop_rate = 0.5):
     super(PotentialPredictor, self).__init__()
     self.init_feat = InitFeat(in_channels, hid_channels, dense_layer_num, drop_rate)
+    self.update_z = nn.ModuleList([UpdateZ(i, hid_channels, head, lambd) for i in range(layer_num)])
+    self.layer_num = layer_num
   def forward(self, data):
-    x, edge_index, batch = data.x, data.edge_index, data.batch
+    x, z, edge_index, batch = data.x, data.z data.edge_index, data.batch
     results = self.init_feat(x) # results.shape = (node_num, hid_channels)
-
+    z = self.update_z[0](x, z) # z.shape = (node_num, head, hid_channels // head)
+    for i in range(1, self.layer_num + 1):
+      pass
     return results
 
