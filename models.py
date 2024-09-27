@@ -1,45 +1,21 @@
 #!/usr/bin/python3
 
+import torch
 from torch import nn
-from torch_geometric.nn import global_mean_pool
-from torch_geometric.nn.models import SchNet
+from torch_geometric.nn import global_mean_pool, GATConv
 
-class PotentialPredictor(SchNet):
-  def __init__(self,):
+class PotentialPredictor(nn.Module):
+  def __init__(self, channels = 256, layer_num = 4, drop_rate = 0.2):
     super(PotentialPredictor, self).__init__()
-    self.tail = nn.Linear(739, self.hidden_channels)
-  def forward(self, h, pos, batch):
-    h = self.tail(h)
+    self.dense = nn.Linear(739, channels)
+    self.convs = nn.ModuleList([GATConv(channels, channels, 8, dropout = drop_rate) for _ in range(layer_num)])
+    self.head = nn.Linear(channels, 1)
+  def forward(self, data):
+    x, edge_index, batch = data.x, data.edge_index, data.batch
+    results = self.dense(x)
+    for conv in self.convs:
+      results = conv(results, edge_index)
+    results = global_mean_pool(results, batch)
+    results = self.head(results)
+    return results
 
-    edge_index, edge_weight = self.interaction_graph(pos, batch)
-    edge_attr = self.distance_expansion(edge_weight)
-
-    for interaction in self.interactions:
-      h = h + interaction(h, edge_index, edge_weight, edge_attr)
-
-    h = self.lin1(h)
-    h = self.act(h)
-    h = self.lin2(h)
-
-    if self.dipole:
-      # Get center of mass.
-      mass = self.atomic_mass[z].view(-1, 1)
-      M = self.sum_aggr(mass, batch, dim=0)
-      c = self.sum_aggr(mass * pos, batch, dim=0) / M
-      h = h * (pos - c.index_select(0, batch))
-
-    if not self.dipole and self.mean is not None and self.std is not None:
-      h = h * self.std + self.mean
-
-    if not self.dipole and self.atomref is not None:
-      h = h + self.atomref(z)
-
-    out = self.readout(h, batch, dim=0)
-
-    if self.dipole:
-      out = torch.norm(out, dim=-1, keepdim=True)
-
-    if self.scale is not None:
-      out = self.scale * out
-
-    return out
