@@ -21,3 +21,9 @@ bash download_datasets.sh
 ```shell
 python3 train.py --trainset <path/to/trainset> --evalset <evalset>
 ```
+
+## Evaluate Model
+
+```shell
+python3 evaluate.py --evalset <evalset> --ckpt <path/to/model.pt>
+```
