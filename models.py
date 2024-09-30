@@ -66,7 +66,7 @@ class InitFeat(nn.Module):
 class UpdateZ(nn.Module):
   def __init__(self, k, channels = 64, head = 1, lambd = 1):
     super(UpdateZ, self).__init__()
-    self.hop_att = nn.Parameter(torch.empty(1, head, (channels // head) if k == 0 else (channels // head * 2)), requires_grad = True) # hop_att.shape = (1, head, channels // head or channels // head * 2)
+    self.hop_att = nn.Parameter(torch.empty(1, head, (channels // head) if k == 1 else (channels // head * 2)), requires_grad = True) # hop_att.shape = (1, head, channels // head or channels // head * 2)
     self.hop_bias = nn.Parameter(torch.empty(1, head), requires_grad = True) # hop_bias.shape = (1, head)
     self.k = k
     self.channels = channels
