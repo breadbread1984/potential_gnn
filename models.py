@@ -16,7 +16,7 @@ class AeroConv(MessagePassing):
     self.head = head
     self.lambd = lambd
   def forward(self, x, edge_index, z):
-    return self.propagate(edget_index, x = x, z = z)
+    return self.propagate(edge_index, x = x, z = z)
   def propagate(self, edge_index, x, z):
     source, dest = edge_index
     # 1) message generation
