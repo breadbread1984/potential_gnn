@@ -81,7 +81,7 @@ class RhoDataset(Dataset):
     for i in range(1, self.k + 1):
       edge_index.append([i,0])
       edge_index.append([0,i])
-    edge_index = torch.tensor(edge_index, dtype = torch.long).to().contiguous()
+    edge_index = torch.tensor(edge_index, dtype = torch.long).t().contiguous()
     exc = self.exc[index] # exc.shape = ()
     vxc = self.vxc[index] # vxc.shape = ()
     data = Data(x = torch.from_numpy(x), edge_index = edge_index, exc = torch.tensor(exc, dtype = torch.float32), vxc = torch.tensor(vxc, dtype = torch.float32))
