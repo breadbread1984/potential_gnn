@@ -23,7 +23,13 @@ class AeroConv(MessagPassing):
     z_scale_j = z_scale[dest, ...] # z_scale_j.shape = (edge_num, head, channels // head)
     a_ij = F.elu(z_scale_i + z_scale_j)
     a_ij = F.softplus(torch.sum(self.att * a_ij, dim = -1)) + 1e-6 # a_ij.shape = (edge_num, head)
-    
+    adj_sum = self.aggr(a_ij, index = dest) # left.shape = (node_num, head)
+    inv_sqrt_adj_sum = torch.maximum(adj_sum, torch.tensor(1e-32, dtype = torch.float32)) ** -0.5 # inv_sqrt_adj_sum.shape = (node_num, head)
+    left = inv_sqrt_adj_sum[source,...] # left.shape = (edge_num, head)
+    right = inv_sqrt_adj_sum[dest,...] # right.shape = (edge_num, head)
+    normalized_aij = left * a_ij * right # normalized_aij.shape = (edge_num, head)
+    normalized_aij = torch.unsqueeze(normalized_aij, dim = -1) # normalized_aij,shape = (edge_num, head, 1)
+
     # TODO
   def message(self, x, z):
     z_scale = z * torch.log((self.lamb / self.k) + (1 + 1e-6)) # z_scale.shape = (node_num, head, channels // head)
