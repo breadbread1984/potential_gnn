@@ -93,8 +93,9 @@ class PotentialPredictor(nn.Module):
     self.init_feat = InitFeat(in_channels, hid_channels, dense_layer_num, drop_rate)
     self.update_z = nn.ModuleList([UpdateZ(i, hid_channels, head, lambd) for i in range(1, layer_num + 1)])
     self.convs = nn.ModuleList([AeroConv(i, hid_channels, head, lambd) for i in range(1, layer_num)])
-    self.hid_channels = hid_channels
+    self.dropout = nn.Dropout(drop_rate)
     self.head = nn.Linear(hid_channels, 1)
+    self.hid_channels = hid_channels
     self.layer_num = layer_num
   def forward(self, data):
     x, z, edge_index, batch = data.x, data.z data.edge_index, data.batch
@@ -104,6 +105,8 @@ class PotentialPredictor(nn.Module):
       x = self.convs[i](x, edge_index, z = z) # results.shape = (node_num, hid_channels)
       z = self.update_z[i](x, z) # z.shape = (node_num, head, hid_channels // head)
     z = torch.reshape(z, (-1, self.hid_channels)) # z.shape = (node_num, hid_channels)
+    z = F.elu(z)
+    z = self.dropout(z)
     z = global_mean_pool(z, batch) # results.shape = (graph_num, hid_channels)
     z = self.head(z) # results.shape = (graph_num, 1)
     return z
