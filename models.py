@@ -40,7 +40,7 @@ class AeroConv(MessagePassing):
     out = self.update(out) # out.shape = (node_num, channels)
     return out
   def message(self, x, z):
-    z_scale = z * torch.log((self.lamb / self.k) + torch.tensor(1 + 1e-6, dtype = torch.float32, device = z.device)) # z_scale.shape = (node_num, head, channels // head)
+    z_scale = z * torch.log((self.lamb / self.k) + torch.tensor(1 + 1e-6, dtype = torch.float32, device = x.device)) # z_scale.shape = (node_num, head, channels // head)
     return x, z_scale
   def aggregate(self, inputs, index, weights):
     results = torch.reshape(inputs, (-1, self.head, self.channels // self.head)) # results.shape = (edge_num, head, channels // heads)
@@ -77,7 +77,7 @@ class UpdateZ(nn.Module):
     if self.k == 0:
       g = h # g.shape = (node_num, head, channel // head)
     else:
-      z_scale = z * torch.log((self.lambd / self.k) + torch.tensor(1 + 1e-6, dtype = torch.float32, device = z.device)) # z.shape = (node_num, head, channels // head)
+      z_scale = z * torch.log((self.lambd / self.k) + torch.tensor(1 + 1e-6, dtype = torch.float32, device = h.device)) # z.shape = (node_num, head, channels // head)
       g = torch.cat([h, z_scale], dim = -1) # g.shape = (node_num, head, channels // head * 2)
     hop_attention = F.elu(g) # hop_attention.shape = (node_num, head, channel // head or channels // head * 2)
     hop_attention = torch.sum(self.hop_att * hop_attention, dim = -1) + self.hop_bias # hop_attention.shape = (node_num, head)
