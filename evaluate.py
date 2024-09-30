@@ -12,7 +12,7 @@ FLAGS = flags.FLAGS
 
 def add_options():
   flags.DEFINE_string('evalset', default = None, help = 'path to evalset npy')
-  flags.DEFINE_string('ckpt', defalut = None, help = 'path to checkpoint file')
+  flags.DEFINE_string('ckpt', default = None, help = 'path to checkpoint file')
   flags.DEFINE_integer('k', default = 4, help = 'nearest neighbor number')
   flags.DEFINE_integer('batch_size', default = 1024, help = 'batch size')
   flags.DEFINE_enum('device', default = 'cuda', enum_values = {'cuda', 'cpu'}, help = 'device to use')
