@@ -12,13 +12,17 @@ class AeroConv(MessagPassing):
     self.aggr = aggr.SumAggregation()
     self.att = nn.Parameter(torch.empty(1, head, channels // head), requires_grad = True)
     self.k = k
+    self.channels = channels
+    self.head = head
     self.lambd = lambd
   def forward(self, x, edge_index, z):
     return self.propagate(edget_index, x = x, z = z)
   def propagate(self, edge_index, x, z):
     source, dest = edge_index
+    # 1) message generation
     x, z_scale = self.message(x, z) # x.shape = (node_num, channels) z_scale.shape = (node_num, head, channels // head)
-    x = x[source, ...] # x.shape = (edge_num, channels)
+    # 2) message propagation
+    # 2.1) calculate attention (edge weights)
     z_scale_i = z_scale[source, ...] # z_scale_i.shape = (edge_num, head, channels // head)
     z_scale_j = z_scale[dest, ...] # z_scale_j.shape = (edge_num, head, channels // head)
     a_ij = F.elu(z_scale_i + z_scale_j)
@@ -29,13 +33,20 @@ class AeroConv(MessagPassing):
     right = inv_sqrt_adj_sum[dest,...] # right.shape = (edge_num, head)
     normalized_aij = left * a_ij * right # normalized_aij.shape = (edge_num, head)
     normalized_aij = torch.unsqueeze(normalized_aij, dim = -1) # normalized_aij,shape = (edge_num, head, 1)
+    # 2.2) propagation
+    x = x[source, ...] # x.shape = (edge_num, channels)
+    out = self.aggregate(x, index = dest, weights = normalized_aij) # out.shape = (node_num, channels)
 
     # TODO
   def message(self, x, z):
     z_scale = z * torch.log((self.lamb / self.k) + (1 + 1e-6)) # z_scale.shape = (node_num, head, channels // head)
     return x, z_scale
-  def aggregate(self, inputs, index, z_scale):
-    
+  def aggregate(self, inputs, index, weights):
+    results = torch.reshape(inputs, (-1, self.head, self.channels // self.head)) # results.shape = (edge_num, head, channels // heads)
+    results = results * weights # results.shape = (edge_num, head, channels // heads)
+    results = self.aggr(results, index = index) # results.shape = (node_num, head, channels // heads)
+    results = torch.reshape(results, (-1, self.channels)) # results.shape = (node_num, channels)
+    return results
   def update(self, aggr_out):
     pass
 
