@@ -77,7 +77,6 @@ class RhoDataset(Dataset):
     rho = np.expand_dims(self.rho[index,:], axis = 0) # rho.shape = (1, 739)
     pos = np.expand_dims(self.pos[index,:], axis = 0) # pos.shape = (1, 3)
     x = np.concatenate([rho, neighbor_rho], axis = 0) # rhos.shape = (K+1, 739)
-    x_pos = np.concatenate([pos, neighbor_pos], axis = 0) # pos.shape = (K+1, 3)
     edge_index = list()
     for i in range(1, self.k + 1):
       edge_index.append([i,0])
@@ -85,7 +84,7 @@ class RhoDataset(Dataset):
     edge_index = torch.tensor(edge_index, dtype = torch.long).to().contiguous()
     exc = self.exc[index] # exc.shape = ()
     vxc = self.vxc[index] # vxc.shape = ()
-    data = Data(x = torch.from_numpy(x), x_pos = torch.from_numpy(x_pos), edge_index = edge_index, exc = torch.tensor(exc, dtype = torch.float32), vxc = torch.tensor(vxc, dtype = torch.float32))
+    data = Data(x = torch.from_numpy(x), edge_index = edge_index, exc = torch.tensor(exc, dtype = torch.float32), vxc = torch.tensor(vxc, dtype = torch.float32))
     return data
 
 if __name__ == "__main__":
