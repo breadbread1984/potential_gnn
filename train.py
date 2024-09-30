@@ -95,7 +95,7 @@ def main(unused_argv):
         true_vxcs.append(data.vxc.detach().cpu())
       pred_excs = torch.cat(pred_excs, dim = 0)
       pred_vxcs = torch.cat(pred_vxcs, dim = 0)
-      true_excs = torch.cat(true_excs, dim = 0)
+      true_excs = torch.unsqueeze(torch.cat(true_excs, dim = 0), dim = -1)
       true_vxcs = torch.cat(true_vxcs, dim = 0)
       print(f'evaluate: exc MAE: {torchmetrics.functional.mean_absolute_error(pred_excs, true_excs)} vxc MAE: {torchmetrics.functional.mean_absolute_error(pred_vxcs, true_vxcs)}')
 
