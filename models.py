@@ -45,8 +45,8 @@ class AeroConv(MessagePassing):
   def aggregate(self, inputs, index, weights):
     results = torch.reshape(inputs, (-1, self.head, self.channels // self.head)) # results.shape = (edge_num, head, channels // heads)
     results = results * weights # results.shape = (edge_num, head, channels // heads)
-    results = self.aggr(results, index = index) # results.shape = (node_num, head, channels // heads)
     results = torch.reshape(results, (-1, self.channels)) # results.shape = (node_num, channels)
+    results = self.aggr(results, index = index) # results.shape = (node_num, channels)
     return results
   def update(self, aggr_out):
     return aggr_out
