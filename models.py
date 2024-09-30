@@ -8,7 +8,7 @@ class PotentialPredictor(nn.Module):
   def __init__(self, channels = 256, layer_num = 4, drop_rate = 0.2):
     super(PotentialPredictor, self).__init__()
     self.dense = nn.Linear(739, channels)
-    self.convs = nn.ModuleList([GATv2Conv(channels, channels, 8, dropout = drop_rate) for _ in range(layer_num)])
+    self.convs = nn.ModuleList([GATv2Conv(channels, channels // 8, 8, dropout = drop_rate) for _ in range(layer_num)])
     self.head = nn.Linear(channels, 1)
   def forward(self, data):
     x, edge_index, batch = data.x, data.edge_index, data.batch
