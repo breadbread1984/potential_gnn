@@ -43,7 +43,7 @@ def main(unused_argv):
   pred_excs = torch.cat(pred_excs, dim = 0)
   pred_vxcs = torch.cat(pred_vxcs, dim = 0)
   true_excs = torch.unsqueeze(torch.cat(true_excs, dim = 0), dim = -1)
-  true_vxcs = torch.unsqueeze(torch.cat(true_vxcs, dim = 0), dim = -1)
+  true_vxcs = torch.cat(true_vxcs, dim = 0)
   torch.save({'pred_excs': pred_excs, 'pred_vxcs': pred_vxcs, 'true_excs': true_excs, 'true_vxcs': true_vxcs}, 'data.pt')
   print(f'evaluate: exc MAE: {torchmetrics.functional.mean_absolute_error(pred_excs, true_excs)} vxc MAE: {torchmetrics.functional.mean_absolute_error(pred_vxcs, true_vxcs)}')
 
