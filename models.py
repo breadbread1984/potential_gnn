@@ -25,7 +25,7 @@ class AeroConv(MessagPassing):
     # 2.1) calculate attention (edge weights)
     z_scale_i = z_scale[source, ...] # z_scale_i.shape = (edge_num, head, channels // head)
     z_scale_j = z_scale[dest, ...] # z_scale_j.shape = (edge_num, head, channels // head)
-    a_ij = F.elu(z_scale_i + z_scale_j)
+    a_ij = F.elu(z_scale_i + z_scale_j) # a_ij.shape = (edge_num, head, channels // head)
     a_ij = F.softplus(torch.sum(self.att * a_ij, dim = -1)) + 1e-6 # a_ij.shape = (edge_num, head)
     adj_sum = self.aggr(a_ij, index = dest) # left.shape = (node_num, head)
     inv_sqrt_adj_sum = torch.maximum(adj_sum, torch.tensor(1e-32, dtype = torch.float32)) ** -0.5 # inv_sqrt_adj_sum.shape = (node_num, head)
