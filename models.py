@@ -91,7 +91,7 @@ class PotentialPredictor(nn.Module):
   def __init__(self, in_channels = 739, hid_channels = 64, dense_layer_num = 2, head = 1, lambd = 1, layer_num = 10, drop_rate = 0.5):
     super(PotentialPredictor, self).__init__()
     self.init_feat = InitFeat(in_channels, hid_channels, dense_layer_num, drop_rate)
-    self.update_z = nn.ModuleList([UpdateZ(i, hid_channels, head, lambd) for i in range(layer_num + 1)])
+    self.update_z = nn.ModuleList([UpdateZ(i, hid_channels, head, lambd) for i in range(layer_num)])
     self.convs = nn.ModuleList([AeroConv(i, hid_channels, head, lambd) for i in range(1, layer_num + 1)])
     self.head = nn.Linear(hid_channels, 1)
     self.layer_num = layer_num
@@ -101,7 +101,7 @@ class PotentialPredictor(nn.Module):
     z = self.update_z[0](x, z) # z.shape = (node_num, head, hid_channels // head)
     for i in range(1, self.layer_num + 1):
       results = self.convs[i](results, edge_index, z = z) # results.shape = (node_num, hid_channels)
-      z = self.update_z[i](results, z) # z.shape = (node_num, head, hid_channels // head)
+      if i != self.layer_num: z = self.update_z[i](results, z) # z.shape = (node_num, head, hid_channels // head)
     results = global_mean_pool(results, batch) # results.shape = (graph_num, hid_channels)
     results = self.head(results) # results.shape = (graph_num, 1)
     return results
