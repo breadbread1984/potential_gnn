@@ -97,14 +97,14 @@ class PotentialPredictor(nn.Module):
     self.layer_num = layer_num
   def forward(self, data):
     x, z, edge_index, batch = data.x, data.z data.edge_index, data.batch
-    results = self.init_feat(x) # results.shape = (node_num, hid_channels)
+    x = self.init_feat(x) # results.shape = (node_num, hid_channels)
     z = self.update_z[0](x, z) # z.shape = (node_num, head, hid_channels // head)
     for i in range(1, self.layer_num + 1):
-      results = self.convs[i](results, edge_index, z = z) # results.shape = (node_num, hid_channels)
-      if i != self.layer_num: z = self.update_z[i](results, z) # z.shape = (node_num, head, hid_channels // head)
-    results = global_mean_pool(results, batch) # results.shape = (graph_num, hid_channels)
-    results = self.head(results) # results.shape = (graph_num, 1)
-    return results
+      x = self.convs[i](x, edge_index, z = z) # results.shape = (node_num, hid_channels)
+      if i != self.layer_num: z = self.update_z[i](x, z) # z.shape = (node_num, head, hid_channels // head)
+    x = global_mean_pool(x, batch) # results.shape = (graph_num, hid_channels)
+    x = self.head(x) # results.shape = (graph_num, 1)
+    return x
 
 if __name__ == "__main__":
   pass
