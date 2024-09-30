@@ -6,7 +6,7 @@ from torch import nn
 import torch.nn.functional as F
 from torch_geometric.nn import MessagePassing, global_mean_pool, aggr
 
-class AeroConv(MessagPassing):
+class AeroConv(MessagePassing):
   def __init__(self, k, channels = 64, head = 1, lambd = 1):
     super(AeroConv, self).__init__(aggr = None)
     self.aggr = aggr.SumAggregation()
