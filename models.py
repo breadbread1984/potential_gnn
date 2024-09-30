@@ -73,11 +73,11 @@ class UpdateZ(nn.Module):
     self.lambd = lambd
   def forward(self, h, z = None):
     h = torch.reshape(h, (-1, self.head, self.channels // self.head)) # h.shape = (node_num, head, channels // head)
-    if self.k != 0:
+    if self.k == 0:
+      g = h # g.shape = (node_num, head, channel // head)
+    else:
       z_scale = z * torch.log((self.lambd / self.k) + (1 + 1e-6)) # z.shape = (node_num, head, channels // head)
       g = torch.cat([h, z_scale], dim = -1) # g.shape = (node_num, head, channels // head * 2)
-    else:
-      g = h # g.shape = (node_num, head, channel // head)
     hop_attention = F.elu(g) # hop_attention.shape = (node_num, head, channel // head or channels // head * 2)
     hop_attention = torch.sum(self.hop_att * hop_attention, dim = -1) + self.hop_bias # hop_attention.shape = (node_num, head)
     hop_attention = torch.unsqueeze(hop_attention, dim = -1) # hop_attention.shape = (node_num, head, 1)
