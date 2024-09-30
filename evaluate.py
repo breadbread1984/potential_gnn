@@ -4,6 +4,7 @@ from absl import flags, app
 from os.path import join, exists, splitext
 import torch
 from torch import device, save, load, autograd
+from torch_geometric.loader import DataLoader
 import torchmetrics
 from create_dataset import RhoDataset
 from models import PotentialPredictor
