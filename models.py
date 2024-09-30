@@ -70,6 +70,7 @@ class UpdateZ(nn.Module):
     self.hop_bias = nn.Parameter(torch.empty(1, head), requires_grad = True) # hop_bias.shape = (1, head)
     self.k = k
     self.channels = channels
+    self.head = head
     self.lambd = lambd
   def forward(self, h, z = None):
     h = torch.reshape(h, (-1, self.head, self.channels // self.head)) # h.shape = (node_num, head, channels // head)
