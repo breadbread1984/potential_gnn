@@ -22,7 +22,7 @@ def add_options():
   flags.DEFINE_float('lr', default = 1e-4, help = 'learning rate')
   flags.DEFINE_string('ckpt', default = 'ckpt', help = 'path to directory for checkpoint')
   flags.DEFINE_integer('batch_size', default = 1024, help = 'batch size')
-  flags.DEFINE_integer('epochs', default = 100, help = 'number of epochs')
+  flags.DEFINE_integer('epochs', default = 200, help = 'number of epochs')
   flags.DEFINE_enum('device', default = 'cuda', enum_values = {'cuda', 'cpu'}, help = 'device to use')
   flags.DEFINE_boolean('do_eval', default = False, help = 'whether to include evaluation')
 
