@@ -19,7 +19,7 @@ FLAGS = flags.FLAGS
 def add_options():
   flags.DEFINE_string('trainset', default = None, help = 'path to trainset')
   flags.DEFINE_string('evalset', default = None, help = 'path to evalset')
-  flags.DEFINE_float('lr', default = 1e-4, help = 'learning rate')
+  flags.DEFINE_float('lr', default = 1e-2, help = 'learning rate')
   flags.DEFINE_string('ckpt', default = 'ckpt', help = 'path to directory for checkpoint')
   flags.DEFINE_integer('batch_size', default = 1024, help = 'batch size')
   flags.DEFINE_integer('epochs', default = 200, help = 'number of epochs')
