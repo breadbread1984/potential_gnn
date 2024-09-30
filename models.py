@@ -71,7 +71,7 @@ class UpdateZ(nn.Module):
     self.k = k
     self.channels = channels
     self.lambd = lambd
-  def forward(self, h, z):
+  def forward(self, h, z = None):
     h = torch.reshape(h, (-1, self.head, self.channels // self.head)) # h.shape = (node_num, head, channels // head)
     if self.k != 0:
       z_scale = z * torch.log((self.lambd / self.k) + (1 + 1e-6)) # z.shape = (node_num, head, channels // head)
@@ -99,9 +99,8 @@ class PotentialPredictor(nn.Module):
     self.layer_num = layer_num
   def forward(self, data):
     x, edge_index, batch = data.x, data.edge_index, data.batch
-    z = torch.zeros((x.shape[0], self.head, self.hid_channels // self.head), dtype = x.dtype, device = x.device)
     x = self.init_feat(x) # results.shape = (node_num, hid_channels)
-    z = self.update_z[0](x, z) # z.shape = (node_num, head, hid_channels // head)
+    z = self.update_z[0](x) # z.shape = (node_num, head, hid_channels // head)
     for i in range(self.layer_num):
       x = self.convs[i](x, edge_index, z = z) # results.shape = (node_num, hid_channels)
       z = self.update_z[i + 1](x, z) # z.shape = (node_num, head, hid_channels // head)
