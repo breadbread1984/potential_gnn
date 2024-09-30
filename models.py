@@ -102,7 +102,7 @@ class PotentialPredictor(nn.Module):
     x, edge_index, batch = data.x, data.edge_index, data.batch
     x = self.init_feat(x) # results.shape = (node_num, hid_channels)
     z = self.update_z[0](x) # z.shape = (node_num, head, hid_channels // head)
-    for i in range(self.layer_num):
+    for i in range(self.layer_num - 1):
       x = self.convs[i](x = x, edge_index = edge_index, z = z) # results.shape = (node_num, hid_channels)
       z = self.update_z[i + 1](x, z) # z.shape = (node_num, head, hid_channels // head)
     z = torch.reshape(z, (-1, self.hid_channels)) # z.shape = (node_num, hid_channels)
