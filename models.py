@@ -10,7 +10,7 @@ class AeroConv(MessagPassing):
   def __init__(self, k, channels = 64, head = 1, lambd = 1):
     super(AeroConv, self).__init__(aggr = None)
     self.aggr = aggr.SumAggregation()
-    self.att = nn.Parameter(torch.empty(1, head, channels // head), requires_grad = True)
+    self.att = nn.Parameter(torch.empty(1, head, channels // head), requires_grad = True) # att.shape = (1, head, channels // head)
     self.k = k
     self.channels = channels
     self.head = head
