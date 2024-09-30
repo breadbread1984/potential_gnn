@@ -36,8 +36,9 @@ class AeroConv(MessagPassing):
     # 2.2) propagation
     x = x[source, ...] # x.shape = (edge_num, channels)
     out = self.aggregate(x, index = dest, weights = normalized_aij) # out.shape = (node_num, channels)
-
-    # TODO
+    # 3) message update
+    out = self.update(out) # out.shape = (node_num, channels)
+    return out
   def message(self, x, z):
     z_scale = z * torch.log((self.lamb / self.k) + (1 + 1e-6)) # z_scale.shape = (node_num, head, channels // head)
     return x, z_scale
@@ -48,7 +49,7 @@ class AeroConv(MessagPassing):
     results = torch.reshape(results, (-1, self.channels)) # results.shape = (node_num, channels)
     return results
   def update(self, aggr_out):
-    pass
+    return aggr_out
 
 class InitFeat(nn.Module):
   def __init__(self, in_channels = 739, hid_channels = 64, dense_layer_num = 2, drop_rate = 0.5):
@@ -90,13 +91,18 @@ class PotentialPredictor(nn.Module):
   def __init__(self, in_channels = 739, hid_channels = 64, dense_layer_num = 2, head = 1, lambd = 1, layer_num = 10, drop_rate = 0.5):
     super(PotentialPredictor, self).__init__()
     self.init_feat = InitFeat(in_channels, hid_channels, dense_layer_num, drop_rate)
-    self.update_z = nn.ModuleList([UpdateZ(i, hid_channels, head, lambd) for i in range(layer_num)])
+    self.update_z = nn.ModuleList([UpdateZ(i, hid_channels, head, lambd) for i in range(layer_num + 1)])
+    self.convs = nn.ModuleList([AeroConv(i, hid_channels, head, lambd) for i in range(1, layer_num + 1)])
+    self.head = nn.Linear(hid_channels, 1)
     self.layer_num = layer_num
   def forward(self, data):
     x, z, edge_index, batch = data.x, data.z data.edge_index, data.batch
     results = self.init_feat(x) # results.shape = (node_num, hid_channels)
     z = self.update_z[0](x, z) # z.shape = (node_num, head, hid_channels // head)
     for i in range(1, self.layer_num + 1):
-      pass
+      results = self.convs[i](results, edge_index, z = z) # results.shape = (node_num, hid_channels)
+      z = self.update_z[i](results, z) # z.shape = (node_num, head, hid_channels // head)
+    results = global_mean_pool(results, batch) # results.shape = (graph_num, hid_channels)
+    results = self.head(results) # results.shape = (graph_num, 1)
     return results
 
