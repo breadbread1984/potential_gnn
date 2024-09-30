@@ -98,7 +98,8 @@ class PotentialPredictor(nn.Module):
     self.hid_channels = hid_channels
     self.layer_num = layer_num
   def forward(self, data):
-    x, z, edge_index, batch = data.x, data.z data.edge_index, data.batch
+    x, edge_index, batch = data.x, data.edge_index, data.batch
+    z = torch.zeros((x.shape[0], self.head, self.hid_channels // self.head), dtype = x.dtype, device = x.device)
     x = self.init_feat(x) # results.shape = (node_num, hid_channels)
     z = self.update_z[0](x, z) # z.shape = (node_num, head, hid_channels // head)
     for i in range(self.layer_num):
