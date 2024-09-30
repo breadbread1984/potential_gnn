@@ -40,7 +40,7 @@ class AeroConv(MessagePassing):
     out = self.update(out) # out.shape = (node_num, channels)
     return out
   def message(self, x, z):
-    z_scale = z * torch.log((self.lamb / self.k) + torch.tensor(1 + 1e-6, dtype = torch.float32, device = x.device)) # z_scale.shape = (node_num, head, channels // head)
+    z_scale = z * torch.log((self.lambd / self.k) + torch.tensor(1 + 1e-6, dtype = torch.float32, device = x.device)) # z_scale.shape = (node_num, head, channels // head)
     return x, z_scale
   def aggregate(self, inputs, index, weights):
     results = torch.reshape(inputs, (-1, self.head, self.channels // self.head)) # results.shape = (edge_num, head, channels // heads)
