@@ -106,3 +106,5 @@ class PotentialPredictor(nn.Module):
     results = self.head(results) # results.shape = (graph_num, 1)
     return results
 
+if __name__ == "__main__":
+  pass
