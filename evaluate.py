@@ -4,6 +4,7 @@ from absl import flags, app
 from os.path import join, exists, splitext
 import torch
 from torch import device, save, load, autograd
+from torch_geometric.loader import DataLoader
 import torchmetrics
 from create_dataset import RhoDataset
 from models import PotentialPredictor
@@ -12,7 +13,7 @@ FLAGS = flags.FLAGS
 
 def add_options():
   flags.DEFINE_string('evalset', default = None, help = 'path to evalset npy')
-  flags.DEFINE_string('ckpt', defalut = None, help = 'path to checkpoint file')
+  flags.DEFINE_string('ckpt', default = None, help = 'path to checkpoint file')
   flags.DEFINE_integer('k', default = 4, help = 'nearest neighbor number')
   flags.DEFINE_integer('batch_size', default = 1024, help = 'batch size')
   flags.DEFINE_enum('device', default = 'cuda', enum_values = {'cuda', 'cpu'}, help = 'device to use')
@@ -41,7 +42,7 @@ def main(unused_argv):
     true_vxcs.append(data.vxc.detach().cpu())
   pred_excs = torch.cat(pred_excs, dim = 0)
   pred_vxcs = torch.cat(pred_vxcs, dim = 0)
-  true_excs = torch.cat(true_excs, dim = 0)
+  true_excs = torch.unsqueeze(torch.cat(true_excs, dim = 0), dim = -1)
   true_vxcs = torch.cat(true_vxcs, dim = 0)
   print(f'evaluate: exc MAE: {torchmetrics.functional.mean_absolute_error(pred_excs, true_excs)} vxc MAE: {torchmetrics.functional.mean_absolute_error(pred_vxcs, true_vxcs)}')
 
