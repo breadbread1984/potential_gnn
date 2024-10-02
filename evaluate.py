@@ -31,7 +31,7 @@ def main(unused_argv):
   for data in evalset_dataloader:
     data = data.to(device(FLAGS.device))
     data.x.requires_grad = True
-    pred_exc = model(data.x, data.x_pos, data.batch)
+    pred_exc = model(data)
     batch_size = (torch.max(data.batch.unique()) + 1).detach().cpu().numpy().item()
     rho = torch.stack([data.x[data.batch == i][0] for i in range(batch_size)], dim = 0) # rho.shape = (graph_num, 739)
     g = autograd.grad(torch.sum(rho[:,739//2] * pred_exc), data.x, create_graph = True)[0]
