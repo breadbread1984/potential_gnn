@@ -28,7 +28,7 @@ def add_options():
 def main(unused_argv):
   autograd.set_detect_anomaly(True)
   trainset = RhoDataset(FLAGS.trainset, FLAGS.evalset)
-  print(f'trainset size {len(trainset)}, evalset size {len(evalset)}')
+  print(f'trainset size {len(trainset)}')
   trainset_dataloader = DataLoader(trainset, batch_size = FLAGS.batch_size, shuffle = True)
   model = PotentialPredictor()
   model.to(device(FLAGS.device))
