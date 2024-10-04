@@ -78,7 +78,7 @@ class PotentialPredictor(nn.Module):
     self.convs = nn.ModuleList([CustomConv(channels, drop_rate) for _ in range(layer_num)])
     self.head = nn.Linear(channels, 1)
   def forward(self, data):
-    x, x_pos, exc, edge_index, batch = data.x, data.x_pos, data.neighbor_exc, data.edge_index, data.batch
+    x, x_pos, exc, edge_index, batch = data.x, data.x_pos, data.exc, data.edge_index, data.batch
     results = self.dense(x) # results.shape = (node_num, channels)
     for conv in self.convs:
       results = conv(results, edge_index, x_pos) # results.shape = (node_num, channels)
