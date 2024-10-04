@@ -65,7 +65,7 @@ class RhoDataset(Dataset):
     self.ref_pos = np.ascontiguousarray(dataset[:,769:769+3].astype(np.float32)) # pos.shape = (num, 3)
     self.ref_exc = np.ascontiguousarray(dataset[:,769+3].astype(np.float32)) # exc.shape = (num)
     self.ref_vxc = np.ascontiguousarray(dataset[:,769+4].astype(np.float32)) # vxc.shape = (num)
-    self.index.add(self.ref_pos)
+    self.index.add(self.ref_rho)
     dataset = list()
     for f in listdir(evalset_dir):
       dataset.append(np.load(join(evalset_dir, f)))
@@ -77,8 +77,8 @@ class RhoDataset(Dataset):
   def __len__(self):
     return len(self.rho)
   def __getitem__(self, index):
-    pos = self.pos[index:index+1] # pos.shape = (1,3)
-    D, I = self.index.search(pos, self.k) # D.shape = (1, K) I.shape = (1, K)
+    rho = self.rho[index:index+1] # pos.shape = (1,739)
+    D, I = self.index.search(rho, self.k) # D.shape = (1, K) I.shape = (1, K)
     neighbor_rho = np.squeeze(self.ref_rho[I,:], axis = 0) # neighbor_rho.shape = (K, 739)
     neighbor_pos = np.squeeze(self.ref_pos[I,:], axis = 0) # neighbor_pos.shape = (K, 3)
     neighbor_exc = np.squeeze(self.ref_exc[I], axis = 0) # neighbor_exc.shape = (K,)
