@@ -85,7 +85,7 @@ class PotentialPredictor(nn.Module):
     batch_size = (torch.max(batch.unique()) + 1).detach()
     results = torch.stack([results[batch == i][1:,...] for i in range(batch_size)]) # weights.shape = (graph_num, K, channels)
     weights = F.softmax(self.head(results), dim = 1) # weights.shape = (graph_num, K, 1)
-    exc = torch.stack([exc[batch == i] for i in range(batch_size)]) # exc.shape = (graph_num, K)
+    exc = torch.stack([exc[batch == i][1:] for i in range(batch_size)]) # exc.shape = (graph_num, K)
     results = torch.sum(weights * torch.unsqueeze(exc, dim = -1), dim = 1) # results.shape = (graph_num, 1)
     return results
 

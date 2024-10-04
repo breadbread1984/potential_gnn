@@ -76,14 +76,15 @@ class RhoDataset(Dataset):
     neighbor_exc = np.squeeze(self.exc[I,:], axis = 0) # neighbor_exc.shape = (K,)
     rho = np.expand_dims(self.rho[index,:], axis = 0) # rho.shape = (1, 739)
     pos = np.expand_dims(self.pos[index,:], axis = 0) # pos.shape = (1, 3)
+    exc = np.expand_dims(self.exc[index], axis = 0) # exc.shape = (1,)
     x = np.concatenate([rho, neighbor_rho], axis = 0) # rhos.shape = (K+1, 739)
     x_pos = np.concatenate([pos, neighbor_pos], axis = 0) # pos.shape = (K+1, 3)
+    exc = np.concatenate([exc, neighbor_exc], axis = 0) # exc.shape = (K+1,)
     edge_index = list()
     for i in range(1, self.k + 1):
       edge_index.append([i,0])
       edge_index.append([0,i])
     edge_index = torch.tensor(edge_index, dtype = torch.long).t().contiguous() # edge_index.shape = (2, edge_num)
-    exc = self.exc[index] # exc.shape = ()
     vxc = self.vxc[index] # vxc.shape = ()
     data = Data(x = torch.from_numpy(x), x_pos = torch.from_numpy(x_pos), edge_index = edge_index, neighbor_exc = neighbor_exc, exc = torch.tensor(exc, dtype = torch.float32), vxc = torch.tensor(vxc, dtype = torch.float32))
     return data
