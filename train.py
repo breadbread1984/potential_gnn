@@ -24,6 +24,7 @@ def add_options():
   flags.DEFINE_integer('batch_size', default = 256, help = 'batch size')
   flags.DEFINE_integer('epochs', default = 100, help = 'number of epochs')
   flags.DEFINE_enum('device', default = 'cuda', enum_values = {'cuda', 'cpu'}, help = 'device to use')
+  flags.DEFINE_boolean('do_eval', default = False, help = 'whether to include evaluation')
 
 def main(unused_argv):
   autograd.set_detect_anomaly(True)
@@ -76,27 +77,29 @@ def main(unused_argv):
     }
     save(ckpt, join(FLAGS.ckpt, 'model.pth'))
     scheduler.step()
-    evalset_dataloader.sampler.set_epoch(epoch)
-    model.eval()
-    pred_excs, pred_vxcs = list(), list()
-    true_excs, true_vxcs = list(), list()
-    for data in evalset_dataloader:
-      data = data.to(device(FLAGS.device))
-      data.x.requires_grad = True
-      pred_exc = model(data)
-      batch_size = (torch.max(data.batch.unique()) + 1).detach().cpu().numpy().item()
-      rho = torch.stack([data.x[data.batch == i][0] for i in range(batch_size)], dim = 0) # rho.shape = (graph_num, 739)
-      g = autograd.grad(torch.sum(rho[:,739//2] * pred_exc), data.x, create_graph = True)[0]
-      pred_vxc = torch.stack([g[data.batch == i][0] for i in range(batch_size)], dim = 0)[:,739//2] # pred_vxc.shape = (graph_num,)
-      pred_excs.append(pred_exc)
-      pred_vxcs.append(pred_vxc)
-      true_excs.append(data.exc)
-      true_vxcs.append(data.vxc)
-    pred_excs = torch.cat(pred_excs, dim = 0)
-    pred_vxcs = torch.cat(pred_vxcs, dim = 0)
-    true_excs = torch.cat(true_excs, dim = 0)
-    true_vxcs = torch.cat(true_vxcs, dim = 0)
-    print(f'evaluate: exc MAE: {torchmetrics.functional.mean_absolute_error(pred_excs, true_excs)} vxc MAE: {torchmetrics.functional.mean_absolute_error(pred_vxcs, true_vxcs)}')
+    if FLAGS.do_eval:
+      evalset_dataloader.sampler.set_epoch(epoch)
+      model.eval()
+      pred_excs, pred_vxcs = list(), list()
+      true_excs, true_vxcs = list(), list()
+      for data in evalset_dataloader:
+        data = data.to(device(FLAGS.device))
+        data.x.requires_grad = True
+        pred_exc = model(data)
+        batch_size = (torch.max(data.batch.unique()) + 1).detach().cpu().numpy().item()
+        true_exc = torch.stack([data.exc[data.batch == i][0] for i in range(batch_size)], dim = 0) # true_exc.shape = (graph_num,)
+        rho = torch.stack([data.x[data.batch == i][0] for i in range(batch_size)], dim = 0) # rho.shape = (graph_num, 739)
+        g = autograd.grad(torch.sum(rho[:,739//2] * pred_exc), data.x, create_graph = True)[0]
+        pred_vxc = torch.stack([g[data.batch == i][0] for i in range(batch_size)], dim = 0)[:,739//2] # pred_vxc.shape = (graph_num,)
+        pred_excs.append(pred_exc)
+        pred_vxcs.append(pred_vxc)
+        true_excs.append(true_exc)
+        true_vxcs.append(data.vxc)
+      pred_excs = torch.cat(pred_excs, dim = 0)
+      pred_vxcs = torch.cat(pred_vxcs, dim = 0)
+      true_excs = torch.cat(true_excs, dim = 0)
+      true_vxcs = torch.cat(true_vxcs, dim = 0)
+      print(f'evaluate: exc MAE: {torchmetrics.functional.mean_absolute_error(pred_excs, true_excs)} vxc MAE: {torchmetrics.functional.mean_absolute_error(pred_vxcs, true_vxcs)}')
 
 if __name__ == "__main__":
   add_options()
