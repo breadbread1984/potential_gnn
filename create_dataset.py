@@ -56,7 +56,7 @@ class RhoDataset(Dataset):
     res = faiss.StandardGpuResources()
     flat_config = faiss.GpuIndexFlatConfig()
     flat_config.device = 0
-    self.index = faiss.GpuIndexFlatL2(res, 3, flat_config)
+    self.index = faiss.GpuIndexFlatL2(res, 739, flat_config)
     dataset = list()
     for f in listdir(trainset_dir):
       dataset.append(np.load(join(trainset_dir, f)))
