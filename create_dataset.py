@@ -73,7 +73,7 @@ class RhoDataset(Dataset):
     D, I = self.index.search(pos, self.k) # D.shape = (1, K) I.shape = (1, K)
     neighbor_rho = np.squeeze(self.rho[I,:], axis = 0) # neighbor_rho.shape = (K, 739)
     neighbor_pos = np.squeeze(self.pos[I,:], axis = 0) # neighbor_pos.shape = (K, 3)
-    neighbor_exc = np.squeeze(self.exc[I,:], axis = 0) # neighbor_exc.shape = (K,)
+    neighbor_exc = np.squeeze(self.exc[I], axis = 0) # neighbor_exc.shape = (K,)
     rho = np.expand_dims(self.rho[index,:], axis = 0) # rho.shape = (1, 739)
     pos = np.expand_dims(self.pos[index,:], axis = 0) # pos.shape = (1, 3)
     exc = np.expand_dims(self.exc[index], axis = 0) # exc.shape = (1,)
