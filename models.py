@@ -40,7 +40,7 @@ class CustomAggregation(Aggregation):
     return aggregated
 
 class CustomConv(MessagePassing):
-  def __init__(self, channels = 256, drop_rate = 0.2):
+  def __init__(self, channels = 64, drop_rate = 0.2):
     super(CustomConv, self).__init__(aggr = None) # no default aggregate
     self.custom_aggr = CustomAggregation(channels, drop_rate)
     self.dense1 = nn.Linear(channels, channels)
@@ -72,17 +72,20 @@ class CustomConv(MessagePassing):
     return self.custom_aggr(x, index = dest, x_pos = x_pos, source_x = source_x, source_x_pos = source_x_pos) # shape = (node_num, channels)
 
 class PotentialPredictor(nn.Module):
-  def __init__(self, channels = 256, layer_num = 4, drop_rate = 0.2):
+  def __init__(self, channels = 64, layer_num = 4, drop_rate = 0.2):
     super(PotentialPredictor, self).__init__()
     self.dense = nn.Linear(739, channels)
     self.convs = nn.ModuleList([CustomConv(channels, drop_rate) for _ in range(layer_num)])
     self.head = nn.Linear(channels, 1)
   def forward(self, data):
-    x, x_pos, edge_index, batch = data.x, data.x_pos, data.edge_index, data.batch
+    x, x_pos, exc, edge_index, batch = data.x, data.x_pos, data.exc, data.edge_index, data.batch
     results = self.dense(x) # results.shape = (node_num, channels)
     for conv in self.convs:
       results = conv(results, edge_index, x_pos) # results.shape = (node_num, channels)
-    results = global_mean_pool(results, batch) # results.shape = (graph_num, channels)
-    results = self.head(results) # results.shape = (graph_num, 1)
+    batch_size = (torch.max(batch.unique()) + 1).detach()
+    results = torch.stack([results[batch == i][1:,...] for i in range(batch_size)]) # weights.shape = (graph_num, K, channels)
+    weights = F.softmax(self.head(results), dim = 1) # weights.shape = (graph_num, K, 1)
+    exc = torch.stack([exc[batch == i][1:] for i in range(batch_size)]) # exc.shape = (graph_num, K)
+    results = torch.sum(weights * torch.unsqueeze(exc, dim = -1), dim = 1) # results.shape = (graph_num, 1)
     return results
 
