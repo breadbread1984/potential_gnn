@@ -22,7 +22,7 @@ def add_options():
   flags.DEFINE_float('lr', default = 1e-4, help = 'learning rate')
   flags.DEFINE_string('ckpt', default = 'ckpt', help = 'path to directory for checkpoint')
   flags.DEFINE_integer('batch_size', default = 2048, help = 'batch size')
-  flags.DEFINE_integer('epochs', default = 100, help = 'number of epochs')
+  flags.DEFINE_integer('epochs', default = 200, help = 'number of epochs')
   flags.DEFINE_enum('device', default = 'cuda', enum_values = {'cuda', 'cpu'}, help = 'device to use')
 
 def main(unused_argv):
@@ -62,10 +62,9 @@ def main(unused_argv):
       loss.backward()
       optimizer.step()
       global_step = epoch * len(trainset_dataloader) + step
-      if global_step % 100 == 0:
-        print(f'global step #{global_step} epoch #{epoch}: exc MAE = {loss1} vxc MAE = {loss2} lr = {scheduler.get_last_lr()[0]}')
-        tb_writer.add_scalar('exc loss', loss1, global_step)
-        tb_writer.add_scalar('vxc loss', loss2, global_step)
+      print(f'global step #{global_step} epoch #{epoch}: exc MAE = {loss1} vxc MAE = {loss2} lr = {scheduler.get_last_lr()[0]}')
+      tb_writer.add_scalar('exc loss', loss1, global_step)
+      tb_writer.add_scalar('vxc loss', loss2, global_step)
     ckpt = {
       'epoch': epoch,
       'state_dict': model.state_dict(),
