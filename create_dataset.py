@@ -70,9 +70,10 @@ class RhoDataset(Dataset):
     return len(self.rho)
   def __getitem__(self, index):
     pos = self.pos[index:index+1] # pos.shape = (1,3)
-    D, I = self.index.search(pos, self.k) # D.shape = (1, k) I.shape = (1, K)
+    D, I = self.index.search(pos, self.k) # D.shape = (1, K) I.shape = (1, K)
     neighbor_rho = np.squeeze(self.rho[I,:], axis = 0) # neighbor_rho.shape = (K, 739)
     neighbor_pos = np.squeeze(self.pos[I,:], axis = 0) # neighbor_pos.shape = (K, 3)
+    neighbor_exc = np.squeeze(self.exc[I,:], axis = 0) # neighbor_exc.shape = (K,)
     rho = np.expand_dims(self.rho[index,:], axis = 0) # rho.shape = (1, 739)
     pos = np.expand_dims(self.pos[index,:], axis = 0) # pos.shape = (1, 3)
     x = np.concatenate([rho, neighbor_rho], axis = 0) # rhos.shape = (K+1, 739)
@@ -84,7 +85,7 @@ class RhoDataset(Dataset):
     edge_index = torch.tensor(edge_index, dtype = torch.long).t().contiguous() # edge_index.shape = (2, edge_num)
     exc = self.exc[index] # exc.shape = ()
     vxc = self.vxc[index] # vxc.shape = ()
-    data = Data(x = torch.from_numpy(x), x_pos = torch.from_numpy(x_pos), edge_index = edge_index, exc = torch.tensor(exc, dtype = torch.float32), vxc = torch.tensor(vxc, dtype = torch.float32))
+    data = Data(x = torch.from_numpy(x), x_pos = torch.from_numpy(x_pos), edge_index = edge_index, neighbor_exc = neighbor_exc, exc = torch.tensor(exc, dtype = torch.float32), vxc = torch.tensor(vxc, dtype = torch.float32))
     return data
 
 if __name__ == "__main__":
