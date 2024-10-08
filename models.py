@@ -23,15 +23,14 @@ class CustomAggregation(Aggregation):
   def forward(self, x, index, ptr = None, dim_size = None, source_x = None, **kwargs):
     # x.shape = (node_num, channel)
     # source_x.shape = (edge_num, channel)
-    source, dest = index
-    dest_x = x[dest,:] # dest_x.shape = (edge_num, channel)
+    dest_x = x[index,:] # dest_x.shape = (edge_num, channel)
     edge_x = torch.cat([source_x, dest_x], dim = -1) # edge_x.shape = (edge_num, channel * 2)
     weights = torch.exp(self.weight_model(inputs)) # weights.shape = (edge_num, 1)
-    weight_sum = self.aggr(weights, dest) # weight_sum.shape = (node_num, 1)
-    weight_sum = weight_sum[dest,:] # weight_sum.shape = (edge_num, 1)
+    weight_sum = self.aggr(weights, index) # weight_sum.shape = (node_num, 1)
+    weight_sum = weight_sum[index,:] # weight_sum.shape = (edge_num, 1)
     normalized_weights = weights / torch.maximum(weight_sum, torch.tensor(1e-8, dtype = torch.float32, device = weight_sum.device)) # normalized_weights.shape = (edge_num, 1)
     weighted_source_x = source_x * normalized_weights # weighted_source_x.shape = (edge_num, channel)
-    aggregated = self.aggr(weighted_source_x, dest) # aggregated.shape = (node_num, channel)
+    aggregated = self.aggr(weighted_source_x, index) # aggregated.shape = (node_num, channel)
     return aggregated
 
 class CustomConv(MessagePassing):
@@ -63,7 +62,7 @@ class CustomConv(MessagePassing):
     # inputs.shape = (node_num, channels)
     source, dest = edge_index
     source_x = x[source,:] # source_x.sahpe = (edge_num, channels)
-    return self.custom_aggr(x, index = edge_index, source_x = source_x) # shape = (node_num, channels)
+    return self.custom_aggr(x, index = dest, source_x = source_x) # shape = (node_num, channels)
 
 class PotentialPredictor(nn.Module):
   def __init__(self, channels = 64, layer_num = 4, drop_rate = 0.2):
