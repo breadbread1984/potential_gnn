@@ -25,7 +25,7 @@ class CustomAggregation(Aggregation):
     # source_x.shape = (edge_num, channel)
     dest_x = x[index,:] # dest_x.shape = (edge_num, channel)
     edge_x = torch.cat([source_x, dest_x], dim = -1) # edge_x.shape = (edge_num, channel * 2)
-    weights = torch.exp(self.weight_model(inputs)) # weights.shape = (edge_num, 1)
+    weights = torch.exp(self.weight_model(edge_x)) # weights.shape = (edge_num, 1)
     weight_sum = self.aggr(weights, index) # weight_sum.shape = (node_num, 1)
     weight_sum = weight_sum[index,:] # weight_sum.shape = (edge_num, 1)
     normalized_weights = weights / torch.maximum(weight_sum, torch.tensor(1e-8, dtype = torch.float32, device = weight_sum.device)) # normalized_weights.shape = (edge_num, 1)
