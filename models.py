@@ -10,33 +10,28 @@ class CustomAggregation(Aggregation):
   def __init__(self, channel, drop_rate = 0.2):
     super(CustomAggregation, self).__init__()
     self.weight_model = nn.Sequential(
-      nn.LayerNorm([channel * 2 + 3 * 2]),
-      nn.Linear(channel * 2 + 3 * 2, 4),
+      nn.LayerNorm([channel * 2]),
+      nn.Linear(channel * 2, 4),
       nn.Dropout(drop_rate),
       nn.GELU(),
       nn.LayerNorm([4]),
-      nn.Linear(4, 1),
-      nn.Sigmoid()
+      nn.Linear(4, 1)
     )
+    self.aggr = nn.aggr.SumAggregation()
   def reset(self):
     pass
-  def forward(self, x, index, ptr = None, dim_size = None, x_pos = None, source_x = None, source_x_pos = None, **kwargs):
+  def forward(self, x, index, ptr = None, dim_size = None, source_x = None, **kwargs):
     # x.shape = (node_num, channel)
     # source_x.shape = (edge_num, channel)
-    # x_pos.shape = (node_num, 3)
-    # source_x_pos.shape = (edge_num, 3)
-    dest_x = x[index,:] # dest_x.shape = (edge_num, channel)
-    dest_x_pos = x_pos[index,:] # dest_x_pos.shape = (edge_num, 3)
+    source, dest = index
+    dest_x = x[dest,:] # dest_x.shape = (edge_num, channel)
     edge_x = torch.cat([source_x, dest_x], dim = -1) # edge_x.shape = (edge_num, channel * 2)
-    edge_x_pos = torch.cat([source_x_pos, dest_x_pos], dim = -1) # edge_x_pos.shape = (edge_num, 3 * 2)
-    inputs = torch.cat([edge_x, edge_x_pos], dim = -1) # inputs.shape = (edge_num, channel * 2 + 3 * 2)
-    weights = self.weight_model(inputs) # weights.shape = (edge_num, 1)
-    weighted_source_x = source_x * weights
-    aggregated = torch.zeros_like(x, device = x.device)
-    unique_indices = index.unique()
-    for idx in unique_indices:
-      mask = (index == idx)
-      aggregated[idx] = torch.sum(weighted_source_x[mask], dim = 0)
+    weights = torch.exp(self.weight_model(inputs)) # weights.shape = (edge_num, 1)
+    weight_sum = self.aggr(weights, dest) # weight_sum.shape = (node_num, 1)
+    weight_sum = weight_sum[dest,:] # weight_sum.shape = (edge_num, 1)
+    normalized_weights = weights / torch.maximum(weight_sum, torch.tensor(1e-8, dtype = torch.float32, device = weight_sum.device)) # normalized_weights.shape = (edge_num, 1)
+    weighted_source_x = source_x * normalized_weights # weighted_source_x.shape = (edge_num, channel)
+    aggregated = self.aggr(weighted_source_x, dest) # aggregated.shape = (node_num, channel)
     return aggregated
 
 class CustomConv(MessagePassing):
@@ -68,8 +63,7 @@ class CustomConv(MessagePassing):
     # inputs.shape = (node_num, channels)
     source, dest = edge_index
     source_x = x[source,:] # source_x.sahpe = (edge_num, channels)
-    source_x_pos = x_pos[source,:] # source_x_pos.shape = (edge_num, 3)
-    return self.custom_aggr(x, index = dest, x_pos = x_pos, source_x = source_x, source_x_pos = source_x_pos) # shape = (node_num, channels)
+    return self.custom_aggr(x, index = edge_index, source_x = source_x) # shape = (node_num, channels)
 
 class PotentialPredictor(nn.Module):
   def __init__(self, channels = 64, layer_num = 4, drop_rate = 0.2):

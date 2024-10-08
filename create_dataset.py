@@ -51,7 +51,7 @@ def main(unused_argv):
   np.save(join(FLAGS.output, '%s_%f.npy' % (FLAGS.smiles, FLAGS.bond_dist)), output)
 
 class RhoDataset(Dataset):
-  def __init__(self, trainset_dir, evalset_dir, k = 4):
+  def __init__(self, trainset_dir, evalset_dir, k = 100):
     self.k = k
     res = faiss.StandardGpuResources()
     flat_config = faiss.GpuIndexFlatConfig()
