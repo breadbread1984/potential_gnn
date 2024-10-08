@@ -4,7 +4,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 from torch_geometric.nn import MessagePassing, global_mean_pool
-from torch_geometric.nn.aggr import Aggregation
+from torch_geometric.nn.aggr import Aggregation, SumAggregation
 
 class CustomAggregation(Aggregation):
   def __init__(self, channel, drop_rate = 0.2):
@@ -17,7 +17,7 @@ class CustomAggregation(Aggregation):
       nn.LayerNorm([4]),
       nn.Linear(4, 1)
     )
-    self.aggr = nn.aggr.SumAggregation()
+    self.aggr = SumAggregation()
   def reset(self):
     pass
   def forward(self, x, index, ptr = None, dim_size = None, source_x = None, **kwargs):
