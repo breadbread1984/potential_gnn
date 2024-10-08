@@ -71,10 +71,10 @@ class PotentialPredictor(nn.Module):
     self.convs = nn.ModuleList([CustomConv(channels, drop_rate) for _ in range(layer_num)])
     self.head = nn.Linear(channels, 1)
   def forward(self, data):
-    x, x_pos, exc, edge_index, batch = data.x, data.x_pos, data.exc, data.edge_index, data.batch
+    x, exc, edge_index, batch = data.x, data.exc, data.edge_index, data.batch
     results = self.dense(x) # results.shape = (node_num, channels)
     for conv in self.convs:
-      results = conv(results, edge_index, x_pos) # results.shape = (node_num, channels)
+      results = conv(results, edge_index) # results.shape = (node_num, channels)
     batch_size = (torch.max(batch.unique()) + 1).detach()
     results = torch.stack([results[batch == i][1:,...] for i in range(batch_size)]) # weights.shape = (graph_num, K, channels)
     weights = F.softmax(self.head(results), dim = 1) # weights.shape = (graph_num, K, 1)
