@@ -43,11 +43,11 @@ class CustomConv(MessagePassing):
     self.dropout1 = nn.Dropout(drop_rate)
     self.dense2 = nn.Linear(channels, channels)
     self.dropout2 = nn.Dropout(drop_rate)
-  def forward(self, x, edge_index, x_pos):
-    return self.propagate(edge_index, x = x, x_pos = x_pos)
-  def propagate(self, edge_index, x, x_pos):
+  def forward(self, x, edge_index):
+    return self.propagate(edge_index, x = x)
+  def propagate(self, edge_index, x):
     out = self.message(x) # out.shape = (node_num, channels)
-    out = self.aggregate(out, edge_index, x_pos) # out.shape = (node_num, channels)
+    out = self.aggregate(out, edge_index) # out.shape = (node_num, channels)
     return self.update(out) # shape = (node_num, channels)
   def message(self, x):
     results = self.dense1(x)
@@ -59,7 +59,7 @@ class CustomConv(MessagePassing):
     results = self.gelu(results)
     results = self.dropout2(results)
     return results
-  def aggregate(self, x, edge_index, x_pos):
+  def aggregate(self, x, edge_index):
     # inputs.shape = (node_num, channels)
     source, dest = edge_index
     source_x = x[source,:] # source_x.sahpe = (edge_num, channels)

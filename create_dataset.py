@@ -94,7 +94,7 @@ class RhoDataset(Dataset):
       edge_index.append([0,i])
     edge_index = torch.tensor(edge_index, dtype = torch.long).t().contiguous() # edge_index.shape = (2, edge_num)
     vxc = self.vxc[index] # vxc.shape = ()
-    data = Data(x = torch.from_numpy(x), x_pos = torch.from_numpy(x_pos), edge_index = edge_index, exc = torch.tensor(exc, dtype = torch.float32), vxc = torch.tensor(vxc, dtype = torch.float32))
+    data = Data(x = torch.from_numpy(x), edge_index = edge_index, exc = torch.tensor(exc, dtype = torch.float32), vxc = torch.tensor(vxc, dtype = torch.float32))
     return data
 
 if __name__ == "__main__":
