@@ -17,8 +17,8 @@ from models import PotentialPredictor
 FLAGS = flags.FLAGS
 
 def add_options():
-  flags.DEFINE_string('trainset', default = None, help = 'path to trainset')
-  flags.DEFINE_string('evalset', default = None, help = 'path to evalset')
+  flags.DEFINE_string('refset', default = None, help = 'path to reference set')
+  flags.DEFINE_string('queryset', default = None, help = 'path to query set')
   flags.DEFINE_float('lr', default = 1e-4, help = 'learning rate')
   flags.DEFINE_string('ckpt', default = 'ckpt', help = 'path to directory for checkpoint')
   flags.DEFINE_integer('batch_size', default = 2048, help = 'batch size')
@@ -27,7 +27,7 @@ def add_options():
 
 def main(unused_argv):
   autograd.set_detect_anomaly(True)
-  trainset = RhoDataset(FLAGS.trainset, FLAGS.evalset)
+  trainset = RhoDataset(FLAGS.refset, FLAGS.queryset)
   print(f'trainset size {len(trainset)}')
   trainset_dataloader = DataLoader(trainset, batch_size = FLAGS.batch_size, shuffle = True)
   model = PotentialPredictor()
