@@ -71,7 +71,7 @@ class PotentialPredictor(nn.Module):
     self.convs = nn.ModuleList([CustomConv(channels, drop_rate) for _ in range(layer_num)])
     self.head = nn.Linear(channels, 1)
   def forward(self, data):
-    x, exc, edge_index, batch = data.x, data.exc, data.edge_index, data.batch
+    x, exc, vxc, edge_index, batch = data.x, data.exc, data.vxc, data.edge_index, data.batch
     results = self.dense(x) # results.shape = (node_num, channels)
     for conv in self.convs:
       results = conv(results, edge_index) # results.shape = (node_num, channels)
@@ -79,6 +79,8 @@ class PotentialPredictor(nn.Module):
     results = torch.stack([results[batch == i][1:,...] for i in range(batch_size)]) # weights.shape = (graph_num, K, channels)
     weights = F.softmax(self.head(results), dim = 1) # weights.shape = (graph_num, K, 1)
     exc = torch.stack([exc[batch == i][1:] for i in range(batch_size)]) # exc.shape = (graph_num, K)
-    results = torch.sum(weights * torch.unsqueeze(exc, dim = -1), dim = 1) # results.shape = (graph_num, 1)
-    return results
+    vxc = torch.stack([vxc[batch == i][1:] for i in range(batch_size)]) # vxc.shape = (graph_num, K)
+    pred_exc = torch.sum(weights * torch.unsqueeze(exc, dim = -1), dim = 1) # pred_exc.shape = (graph_num, 1)
+    pred_vxc = torch.sum(weights * torch.unsqueeze(vxc, dim = -1), dim = 1) # pred_vxc.shape = (graph_num, 1)
+    return pred_exc, pred_vxc
 

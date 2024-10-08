@@ -50,21 +50,24 @@ def main(unused_argv):
       optimizer.zero_grad()
       data = data.to(device(FLAGS.device))
       data.x.requires_grad = True # data.x.shape = (node_num1 + node_num2 + ... + node_numbatch, 739)
-      pred_exc = model(data) # pred_exc.shape = (graph_num, 1)
+      pred_exc, pred_vxc = model(data) # pred_exc.shape = (graph_num, 1)
       batch_size = (torch.max(data.batch.unique()) + 1).detach().cpu().numpy().item()
       true_exc = torch.stack([data.exc[data.batch == i][0] for i in range(batch_size)], dim = 0) # true_exc.shape = (graph_num,)
+      true_vxc = torch.stack([data.vxc[data.batch == i][0] for i in range(batch_size)], dim = 0) # true_vxc.shape = (graph_num,)
       loss1 = mae(torch.squeeze(pred_exc), true_exc)
+      loss2 = mae(torch.squeeze(pred_vxc), true_vxc)
       rho = torch.stack([data.x[data.batch == i][0] for i in range(batch_size)], dim = 0) # rho.shape = (graph_num, 739)
       g = autograd.grad(torch.sum(rho[:,739//2] * pred_exc), data.x, create_graph = True)[0]
       pred_vxc = torch.stack([g[data.batch == i][0] for i in range(batch_size)], dim = 0)[:,739//2] # pred_vxc.shape = (graph_num,)
-      loss2 = mae(pred_vxc, data.vxc)
-      loss = loss1 + loss2
+      loss3 = mae(pred_vxc, true_vxc)
+      loss = loss1 + loss2 + loss3
       loss.backward()
       optimizer.step()
       global_step = epoch * len(trainset_dataloader) + step
-      print(f'global step #{global_step} epoch #{epoch}: exc MAE = {loss1} vxc MAE = {loss2} lr = {scheduler.get_last_lr()[0]}')
-      tb_writer.add_scalar('exc loss', loss1, global_step)
-      tb_writer.add_scalar('vxc loss', loss2, global_step)
+      print(f'global step #{global_step} epoch #{epoch}: exc MAE = {loss1} vxc (knn) MAE = {loss2} vxc (derivative) MAE = {loss3} lr = {scheduler.get_last_lr()[0]}')
+      tb_writer.add_scalar('exc (knn) loss', loss1, global_step)
+      tb_writer.add_scalar('vxc (knn) loss', loss2, global_step)
+      tb_writer.add_scalar('vxc (derivative) loss', loss3, global_step)
     ckpt = {
       'epoch': epoch,
       'state_dict': model.state_dict(),
