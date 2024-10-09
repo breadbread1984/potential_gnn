@@ -36,7 +36,7 @@ def main(unused_argv):
     pred_exc, pred_vxc = model(data)
     pred_excs.append(torch.squeeze(pred_exc, dim = -1))
     pred_vxcs.append(torch.squeeze(pred_vxc, dim = -1))
-    batch_size = (torch.stack(data.batch.unique()) + 1).detach().cpu().numpy().item()
+    batch_size = (torch.max(data.batch.unique()) + 1).detach().cpu().numpy().item()
     true_exc = torch.stack([data.exc[data.batch == i][0] for i in range(batch_size)], dim = 0) # true_exc.shape = (graph_num,)
     true_vxc = torch.stack([data.vxc[data.batch == i][0] for i in range(batch_size)], dim = 0) # true_vxc.shape = (graph_num,)
     true_excs.append(true_exc)
