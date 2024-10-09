@@ -48,9 +48,7 @@ def main(unused_argv):
   pred_vxcs_der = torch.cat(pred_vxcs_der, dim = 0)
   true_excs = torch.cat(true_excs, dim = 0)
   true_vxcs = torch.cat(true_vxcs, dim = 0)
-  print(f'exc MAE (knn): {torchmetrics.functional.mean_absolute_error(pred_excs, true_excs)}
-          vxc MAE (knn): {torchmetrics.functional.mean_absolute_error(pred_vxcs, true_vxcs)}
-          vxc MAE (derivative): {torchmetrics.functional.mean_absolute_error(pred_vxcs_der, true_vxcs)}')
+  print(f'exc MAE (knn): {torchmetrics.functional.mean_absolute_error(pred_excs, true_excs)} vxc MAE (knn): {torchmetrics.functional.mean_absolute_error(pred_vxcs, true_vxcs)} vxc MAE (derivative): {torchmetrics.functional.mean_absolute_error(pred_vxcs_der, true_vxcs)}')
 
 if __name__ == "__main__":
   add_options()
