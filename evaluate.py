@@ -35,17 +35,17 @@ def main(unused_argv):
     data = data.to(device(FLAGS.device))
     data.x.requires_grad = True
     pred_exc, pred_vxc = model(data)
-    pred_excs.append(torch.squeeze(pred_exc, dim = -1))
-    pred_vxcs.append(torch.squeeze(pred_vxc, dim = -1))
+    pred_excs.append(torch.squeeze(pred_exc, dim = -1).cpu())
+    pred_vxcs.append(torch.squeeze(pred_vxc, dim = -1).cpu())
     batch_size = (torch.max(data.batch.unique()) + 1).detach().cpu().numpy().item()
     true_exc = torch.stack([data.exc[data.batch == i][0] for i in range(batch_size)], dim = 0) # true_exc.shape = (graph_num,)
     true_vxc = torch.stack([data.vxc[data.batch == i][0] for i in range(batch_size)], dim = 0) # true_vxc.shape = (graph_num,)
-    true_excs.append(true_exc)
-    true_vxcs.append(true_vxc)
+    true_excs.append(true_exc.cpu())
+    true_vxcs.append(true_vxc.cpu())
     rho = torch.stack([data.x[data.batch == i][0] for i in range(batch_size)], dim = 0) # rho.shape = (graph_num, 739)
     g = autograd.grad(torch.sum(rho[:,739//2] * pred_exc), data.x, create_graph = True)[0]
     pred_vxc = torch.stack([g[data.batch == i][0] for i in range(batch_size)], dim = 0)[:,739//2]
-    pred_vxcs_der.append(pred_vxc)
+    pred_vxcs_der.append(pred_vxc.cpu())
   pred_excs = torch.cat(pred_excs, dim = 0)
   pred_vxcs = torch.cat(pred_vxcs, dim = 0)
   pred_vxcs_der = torch.cat(pred_vxcs_der, dim = 0)
