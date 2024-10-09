@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 from absl import flags, app
+from tqdm import tqdm
 import torch
 from torch import device, save, load, autograd
 from torch_geometric.loader import DataLoader
@@ -30,7 +31,7 @@ def main(unused_argv):
   pred_vxcs_der = list()
   true_excs = list()
   true_vxcs = list()
-  for data in dataloader:
+  for data in tqdm(dataloader):
     data = data.to(device(FLAGS.device))
     data.x.requires_grad = True
     pred_exc, pred_vxc = model(data)
@@ -40,7 +41,7 @@ def main(unused_argv):
     true_exc = torch.stack([data.exc[data.batch == i][0] for i in range(batch_size)], dim = 0) # true_exc.shape = (graph_num,)
     true_vxc = torch.stack([data.vxc[data.batch == i][0] for i in range(batch_size)], dim = 0) # true_vxc.shape = (graph_num,)
     true_excs.append(true_exc)
-    tree_vxcs.append(true_vxc)
+    true_vxcs.append(true_vxc)
     rho = torch.stack([data.x[data.batch == i][0] for i in range(batch_size)], dim = 0) # rho.shape = (graph_num, 739)
     g = autograd.grad(torch.sum(rho[:,739//2] * pred_exc), data.x, create_graph = True)[0]
     pred_vxc = torch.stack([g[data.batch == i][0] for i in range(batch_size)], dim = 0)[:,739//2]
