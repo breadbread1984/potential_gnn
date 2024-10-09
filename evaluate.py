@@ -13,6 +13,7 @@ FLAGS = flags.FLAGS
 def add_options():
   flags.DEFINE_string('refset', default = None, help = 'path to reference set')
   flags.DEFINE_string('queryset', default = None, help = 'path to query set')
+  flags.DEFINE_integer('batch_size',default = 2048, help = 'batch size')
   flags.DEFINE_string('ckpt', default = None, help = 'path to checkpoint pth file')
   flags.DEFINE_enum('device', default = 'cuda', enum_values = {'cuda', 'cpu'}, help = 'device to use')
 
